@@ -62,7 +62,10 @@
     .mode-line { display:flex;gap:6px;margin-bottom:9px; }
     .mode { flex:1;border:1px solid var(--line);background:#efeee8;border-radius:8px;padding:7px 4px;font-size:9px;font-weight:750; }
     .mode.active { border-color:var(--green);background:var(--soft);color:var(--green); }
-    .primary { width:100%;border:0;border-radius:11px;background:var(--green);color:white;padding:12px;font-size:12px;font-weight:800;box-shadow:0 7px 17px rgba(46,105,88,.2); }
+    .apply-line { display:flex;gap:8px; }
+    .secondary { flex:0 0 104px;border:1px solid #ccd0ca;border-radius:11px;background:#f0efe9;padding:12px 8px;font-size:11px;font-weight:800; }
+    .secondary:hover { background:#e7e6df; }
+    .primary { flex:1;width:100%;border:0;border-radius:11px;background:var(--green);color:white;padding:12px;font-size:12px;font-weight:800;box-shadow:0 7px 17px rgba(46,105,88,.2); }
     .primary:hover { background:#255a4b;transform:translateY(-1px); }
     .primary:disabled { background:#88a198;transform:none; }
     .footnote { text-align:center;color:var(--muted);font-size:9px;margin-top:7px; }
@@ -117,7 +120,7 @@
 
   <footer>
     <div class="mode-line"><button class="mode active">整理未分组</button><button class="mode">优化已有组</button><button class="mode">全部重组</button></div>
-    <button class="primary" id="primary">让 AI 整理 5 个未分组标签</button>
+    <div class="apply-line"><button class="secondary hidden" id="resetPlan">恢复原先</button><button class="primary" id="primary">让 AI 整理 5 个未分组标签</button></div>
     <div class="footnote">仅发送标题和 URL · DeepSeek · 可在设置中修改</div>
   </footer>
 </div>
@@ -125,11 +128,12 @@
 <script>
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),1800)}
-  function switchView(view){$$('.view-tab').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#primary').textContent=view==='current'?'让 AI 整理 5 个未分组标签':'应用此方案到 Chrome';}
+  function switchView(view){$$('.view-tab').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#resetPlan').classList.toggle('hidden',view==='current');$('#primary').textContent=view==='current'?'让 AI 整理 5 个未分组标签':'应用此方案到 Chrome';}
   $$('.view-tab').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
   $$('.group-head').forEach(b=>b.onclick=e=>{if(e.target.matches('input'))return;b.closest('.group').classList.toggle('closed')});
   $$('.mode').forEach(b=>b.onclick=()=>{$$('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active');const n={'整理未分组':'让 AI 整理 5 个未分组标签','优化已有组':'让 AI 优化当前分组','全部重组':'让 AI 重新规划全部标签'};$('#primary').textContent=n[b.textContent];});
   $('#primary').onclick=e=>{if(!$('#proposalView').classList.contains('hidden')){e.target.disabled=true;e.target.textContent='正在应用…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='已应用到 Chrome';toast('已更新原生标签组（模拟）')},850);return;}e.target.disabled=true;e.target.textContent='AI 正在分析…';setTimeout(()=>{e.target.disabled=false;$('#badge').textContent='· 3';switchView('proposal');toast('方案已生成，请确认后应用')},950)};
+  $('#resetPlan').onclick=()=>{switchView('current');$('#badge').textContent='';toast('已放弃 AI 方案，恢复原先状态')};
   $('#search').oninput=e=>{const q=e.target.value.toLowerCase();$$('#currentView .group').forEach(g=>g.style.display=g.textContent.toLowerCase().includes(q)?'':'none')};
   $$('.pill').forEach(b=>b.onclick=e=>{e.stopPropagation();toast('已定位到对应标签（模拟）')});
   $('#undo').onclick=()=>toast('已撤销上一次整理（模拟）');$('#settings').onclick=()=>toast('模型设置将在独立页面打开');
