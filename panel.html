@@ -50,11 +50,14 @@
     .proposal .group-name input { border:0;background:transparent;width:180px;font-weight:800;padding:2px 4px;border-radius:5px; }
     .proposal .group-name input:focus { outline:2px solid rgba(46,105,88,.2);background:#f2f3ee; }
     .proposal .tab-row { cursor:grab; }
-    .proposal .pill[title] { background:transparent;font-size:14px;letter-spacing:-2px;cursor:grab; }
-    .proposal .tab-row:active { cursor:grabbing; }
-    .proposal .tab-row.dragging { opacity:.35;transform:scale(.98); }
-    .proposal .group-body { min-height:42px;transition:.15s; }
-    .proposal .group-body.drag-over { background:var(--soft);box-shadow:inset 0 0 0 1px rgba(46,105,88,.25);border-radius:9px; }
+    .content .pill[title] { background:transparent;font-size:14px;letter-spacing:-2px;cursor:grab; }
+    .content .tab-row { cursor:grab; }
+    .content .tab-row:active { cursor:grabbing; }
+    .content .tab-row.dragging { opacity:.35;transform:scale(.98); }
+    .content .group-body { min-height:42px;transition:.15s; }
+    .content .group-body.drag-over { background:var(--soft);box-shadow:inset 0 0 0 1px rgba(46,105,88,.25);border-radius:9px; }
+    .ungrouped { border-style:dashed;background:rgba(255,255,255,.38); }
+    .ungrouped .dot { background:#a6aca8;box-shadow:0 0 0 4px rgba(120,130,125,.1); }
     .hidden { display:none!important; }
     footer { padding:12px 16px 15px;border-top:1px solid rgba(33,48,42,.09);background:rgba(249,248,243,.9); }
     .mode-line { display:flex;gap:6px;margin-bottom:9px; }
@@ -79,41 +82,42 @@
     <div class="head-actions"><button class="icon" id="undo" title="撤销">↶</button><button class="icon" id="settings" title="设置">⚙</button></div>
   </header>
   <main class="content current" id="currentView">
-    <div class="section-title">未分组 <span>5</span></div>
-    <div class="group" data-search="未分组">
+    <div class="section-title">标签与分组 <span>拖动即可调整</span></div>
+    <div class="group ungrouped">
+      <button class="group-head"><span class="dot"></span><span class="group-name">未分组</span><span class="group-meta"><span class="group-count">5 个</span> <span class="chev">⌄</span></span></button>
       <div class="group-body">
-        <div class="tab-row"><div class="favicon">GH</div><div class="tab-copy"><div class="tab-title">feat/auth · Pull Request #184</div><div class="tab-url">github.com/acme/web/pull/184</div></div><button class="pill">定位</button></div>
-        <div class="tab-row"><div class="favicon purple">F</div><div class="tab-copy"><div class="tab-title">Authentication flow – Figma</div><div class="tab-url">figma.com/design/auth</div></div><button class="pill">定位</button></div>
-        <div class="tab-row"><div class="favicon blue">D</div><div class="tab-copy"><div class="tab-title">OAuth 2.0 documentation</div><div class="tab-url">developers.google.com/identity</div></div><button class="pill">定位</button></div>
-        <div class="tab-row"><div class="favicon orange">L</div><div class="tab-copy"><div class="tab-title">localhost:5173 / login</div><div class="tab-url">localhost:5173/login</div></div><button class="pill">定位</button></div>
-        <div class="tab-row"><div class="favicon orange">S</div><div class="tab-copy"><div class="tab-title">staging · User Console</div><div class="tab-url">staging.internal.example.com</div></div><button class="pill">定位</button></div>
+        <div class="tab-row"><div class="favicon">GH</div><div class="tab-copy"><div class="tab-title">feat/auth · Pull Request #184</div><div class="tab-url">github.com/acme/web/pull/184</div></div><span class="pill" title="拖动标签">⠿</span></div>
+        <div class="tab-row"><div class="favicon purple">F</div><div class="tab-copy"><div class="tab-title">Authentication flow – Figma</div><div class="tab-url">figma.com/design/auth</div></div><span class="pill" title="拖动标签">⠿</span></div>
+        <div class="tab-row"><div class="favicon blue">D</div><div class="tab-copy"><div class="tab-title">OAuth 2.0 documentation</div><div class="tab-url">developers.google.com/identity</div></div><span class="pill" title="拖动标签">⠿</span></div>
+        <div class="tab-row"><div class="favicon orange">L</div><div class="tab-copy"><div class="tab-title">localhost:5173 / login</div><div class="tab-url">localhost:5173/login</div></div><span class="pill" title="拖动标签">⠿</span></div>
+        <div class="tab-row"><div class="favicon orange">S</div><div class="tab-copy"><div class="tab-title">staging · User Console</div><div class="tab-url">staging.internal.example.com</div></div><span class="pill" title="拖动标签">⠿</span></div>
       </div>
     </div>
-    <div class="section-title">已有分组 <span>2</span></div>
-    <section class="group" data-search="Sprint 28 工作">
-      <button class="group-head"><span class="dot"></span><span class="group-name">Sprint 28</span><span class="group-meta">2 个 <span class="chev">⌄</span></span></button>
-      <div class="group-body"><div class="tab-row"><div class="favicon blue">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div><div class="tab-url">jira.example.com/sprint/28</div></div><button class="pill">定位</button></div><div class="tab-row"><div class="favicon green">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div><div class="tab-url">meet.google.com/abc</div></div><button class="pill">定位</button></div></div>
+    <section class="group">
+      <button class="group-head"><span class="dot"></span><span class="group-name">Sprint 28</span><span class="group-meta"><span class="group-count">2 个</span> <span class="chev">⌄</span></span></button>
+      <div class="group-body"><div class="tab-row"><div class="favicon blue">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div><div class="tab-url">jira.example.com/sprint/28</div></div><span class="pill" title="拖动标签">⠿</span></div><div class="tab-row"><div class="favicon green">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div><div class="tab-url">meet.google.com/abc</div></div><span class="pill" title="拖动标签">⠿</span></div></div>
     </section>
-    <section class="group closed" data-search="沟通 邮箱">
-      <button class="group-head"><span class="dot orange"></span><span class="group-name">沟通</span><span class="group-meta">1 个 <span class="chev">⌄</span></span></button>
-      <div class="group-body"><div class="tab-row"><div class="favicon red">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div><div class="tab-url">mail.example.com</div></div><button class="pill">定位</button></div></div>
+    <section class="group">
+      <button class="group-head"><span class="dot orange"></span><span class="group-name">沟通</span><span class="group-meta"><span class="group-count">1 个</span> <span class="chev">⌄</span></span></button>
+      <div class="group-body"><div class="tab-row"><div class="favicon red">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div><div class="tab-url">mail.example.com</div></div><span class="pill" title="拖动标签">⠿</span></div></div>
     </section>
   </main>
 
   <main class="content proposal hidden" id="proposalView">
-    <div class="summary"><strong>AI 整理完成</strong><br>新建 2 个组，保留 1 个组，并建议将“Sprint 28”改名。</div>
-    <div class="section-title">方案预览 <span>3 组</span></div>
+    <div class="summary"><strong>AI 整理完成</strong><br>新建 2 个组，保留 1 个组；有 1 个标签保持未分组。</div>
+    <div class="section-title">方案预览 <span>拖动即可修正</span></div>
+    <section class="group ungrouped"><button class="group-head"><span class="dot"></span><span class="group-name">未分组</span><span class="group-meta"><span class="group-count">1 个</span> <span class="chev">⌄</span></span></button><div class="group-body"><div class="tab-row"><div class="favicon red">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div></div><span class="pill" title="拖动标签">⠿</span></div></div></section>
     <section class="group">
       <button class="group-head"><span class="dot"></span><span class="group-name"><input value="认证功能开发"></span><span class="group-meta"><span class="ai">AI 新建</span> <span class="group-count">4 个</span></span></button>
       <div class="group-body"><div class="tab-row"><div class="favicon">GH</div><div class="tab-copy"><div class="tab-title">feat/auth · Pull Request #184</div></div><span class="pill" title="拖动标签">⠿</span></div><div class="tab-row"><div class="favicon purple">F</div><div class="tab-copy"><div class="tab-title">Authentication flow – Figma</div></div><span class="pill" title="拖动标签">⠿</span></div><div class="tab-row"><div class="favicon blue">D</div><div class="tab-copy"><div class="tab-title">OAuth 2.0 documentation</div></div><span class="pill" title="拖动标签">⠿</span></div><div class="tab-row"><div class="favicon orange">L</div><div class="tab-copy"><div class="tab-title">localhost:5173 / login</div></div><span class="pill" title="拖动标签">⠿</span></div></div>
     </section>
     <section class="group"><button class="group-head"><span class="dot orange"></span><span class="group-name"><input value="测试与验收"></span><span class="group-meta"><span class="ai">AI 新建</span> <span class="group-count">1 个</span></span></button><div class="group-body"><div class="tab-row"><div class="favicon orange">S</div><div class="tab-copy"><div class="tab-title">staging · User Console</div></div><span class="pill" title="拖动标签">⠿</span></div></div></section>
-    <section class="group"><button class="group-head"><span class="dot"></span><span class="group-name"><input value="Sprint 28 · 日常协作"></span><span class="group-meta"><span class="rename">建议改名</span> <span class="group-count">3 个</span></span></button><div class="group-body"><div class="tab-row"><div class="favicon blue">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div></div><span class="pill">保留</span></div><div class="tab-row"><div class="favicon green">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div></div><span class="pill">保留</span></div><div class="tab-row"><div class="favicon red">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div></div><span class="pill">移入</span></div></div></section>
+    <section class="group"><button class="group-head"><span class="dot"></span><span class="group-name"><input value="Sprint 28 · 日常协作"></span><span class="group-meta"><span class="rename">建议改名</span> <span class="group-count">2 个</span></span></button><div class="group-body"><div class="tab-row"><div class="favicon blue">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div></div><span class="pill" title="拖动标签">⠿</span></div><div class="tab-row"><div class="favicon green">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div></div><span class="pill" title="拖动标签">⠿</span></div></div></section>
   </main>
 
   <footer>
     <div class="mode-line"><button class="mode active">整理未分组</button><button class="mode">优化已有组</button><button class="mode">全部重组</button></div>
-    <div class="apply-line"><button class="secondary hidden" id="resetPlan">恢复原先</button><button class="primary" id="primary">让 AI 整理 5 个未分组标签</button></div>
+    <div class="apply-line"><button class="secondary" id="aiAction">AI 整理</button><button class="secondary hidden" id="resetPlan">恢复原先</button><button class="primary" id="saveAction">保存调整</button></div>
     <div class="footnote">仅发送标题和 URL · DeepSeek · 可在设置中修改</div>
   </footer>
 </div>
@@ -121,17 +125,16 @@
 <script>
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),1800)}
-  function switchView(view){$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#resetPlan').classList.toggle('hidden',view==='current');$('.mode-line').classList.toggle('hidden',view==='proposal');$('#primary').textContent=view==='current'?'让 AI 整理 5 个未分组标签':'应用此方案到 Chrome';}
+  function switchView(view){$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#resetPlan').classList.toggle('hidden',view==='current');$('#aiAction').classList.toggle('hidden',view==='proposal');$('.mode-line').classList.toggle('hidden',view==='proposal');$('#saveAction').textContent=view==='current'?'保存调整':'应用 AI 方案';}
   $$('.group-head').forEach(b=>b.onclick=e=>{if(e.target.matches('input'))return;b.closest('.group').classList.toggle('closed')});
-  $$('.mode').forEach(b=>b.onclick=()=>{$$('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active');const n={'整理未分组':'让 AI 整理 5 个未分组标签','优化已有组':'让 AI 优化当前分组','全部重组':'让 AI 重新规划全部标签'};$('#primary').textContent=n[b.textContent];});
-  $('#primary').onclick=e=>{if(!$('#proposalView').classList.contains('hidden')){e.target.disabled=true;e.target.textContent='正在应用…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='已应用到 Chrome';toast('已更新原生标签组（模拟）')},850);return;}e.target.disabled=true;e.target.textContent='AI 正在分析…';setTimeout(()=>{e.target.disabled=false;switchView('proposal');toast('方案已生成，可拖动标签后再应用')},950)};
+  $$('.mode').forEach(b=>b.onclick=()=>{$$('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
+  $('#aiAction').onclick=e=>{e.target.disabled=true;e.target.textContent='分析中…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='AI 整理';switchView('proposal');toast('方案已生成，可拖动标签后再应用')},950)};
+  $('#saveAction').onclick=e=>{e.target.disabled=true;e.target.textContent='正在保存…';setTimeout(()=>{e.target.disabled=false;e.target.textContent=$('#proposalView').classList.contains('hidden')?'保存调整':'已应用';toast('已保存到 Chrome 原生标签组（模拟）')},700)};
   $('#resetPlan').onclick=()=>{switchView('current');toast('已放弃 AI 方案，恢复原先状态')};
-  $$('.pill').forEach(b=>b.onclick=e=>{e.stopPropagation();toast('已定位到对应标签（模拟）')});
   $('#undo').onclick=()=>toast('已撤销上一次整理（模拟）');$('#settings').onclick=()=>toast('模型设置将在独立页面打开');
   let dragging=null;
-  function updateCounts(){$$('#proposalView .group').forEach(g=>{$('.group-count',g).textContent=`${$$('.tab-row',g).length} 个`})}
-  $$('#proposalView .tab-row').forEach(row=>{row.draggable=true;row.addEventListener('dragstart',()=>{dragging=row;row.classList.add('dragging')});row.addEventListener('dragend',()=>{row.classList.remove('dragging');dragging=null;$$('.drag-over').forEach(x=>x.classList.remove('drag-over'))})});
-  $$('#proposalView .group-body').forEach(zone=>{zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over')});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');if(!dragging||dragging.parentElement===zone)return;zone.appendChild(dragging);updateCounts();toast('标签已移动，可继续调整')})});
+  function updateCounts(view){$$(`#${view} .group`).forEach(g=>{$('.group-count',g).textContent=`${$$('.tab-row',g).length} 个`})}
+  $$('.content').forEach(view=>{const wire=()=>{$$('.tab-row',view).forEach(row=>{row.draggable=true;row.addEventListener('dragstart',()=>{dragging=row;row.classList.add('dragging')});row.addEventListener('dragend',()=>{row.classList.remove('dragging');dragging=null;$$('.drag-over').forEach(x=>x.classList.remove('drag-over'))})});$$('.group-body',view).forEach(zone=>{zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over')});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');if(!dragging||dragging.parentElement===zone)return;zone.appendChild(dragging);updateCounts(view.id);toast('标签已移动，点击保存后生效')})})};wire()});
 </script>
 </body>
 </html>
