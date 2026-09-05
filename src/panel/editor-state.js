@@ -37,3 +37,12 @@ export function setGroupColor(state, clientId, color) {
   if (group) group.color = color;
   return { ...state, draft, dirty: true };
 }
+export function moveGroup(state, clientId, delta) {
+  const draft = cloneDraft(state.draft);
+  const index = draft.groups.findIndex(group => group.clientId === clientId);
+  const target = Math.max(0, Math.min(draft.groups.length - 1, index + delta));
+  if (index < 0 || index === target) return state;
+  const [group] = draft.groups.splice(index, 1);
+  draft.groups.splice(target, 0, group);
+  return { ...state, draft, dirty: true };
+}

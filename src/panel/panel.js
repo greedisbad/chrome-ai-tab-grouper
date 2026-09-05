@@ -1,4 +1,4 @@
-import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, renameGroup, setGroupColor } from "./editor-state.js";
+import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, renameGroup, setGroupColor, moveGroup } from "./editor-state.js";
 import { loadSettings, saveSettings } from "./settings.js";
 
 const $ = selector => document.querySelector(selector);
@@ -30,7 +30,7 @@ function groupHtml(group, ungrouped=false) {
   const ids = ungrouped ? state.draft.ungroupedTabIds : group.tabIds;
   const clientId = ungrouped ? "ungrouped" : group.clientId;
   const title = ungrouped ? "未分组" : `<input class="name-input" data-group-id="${clientId}" value="${escapeHtml(group.title)}">`;
-  const tools = ungrouped ? "" : `<select class="color" data-color-id="${clientId}" title="分组颜色">${colors.map(c=>`<option value="${c}" ${c===group.color?"selected":""}>${c}</option>`).join("")}</select><button class="delete" data-delete-id="${clientId}" title="删除分组">×</button>`;
+  const tools = ungrouped ? "" : `<button class="reorder" data-move-id="${clientId}" data-delta="-1" title="上移分组">↑</button><button class="reorder" data-move-id="${clientId}" data-delta="1" title="下移分组">↓</button><select class="color" data-color-id="${clientId}" title="分组颜色">${colors.map(c=>`<option value="${c}" ${c===group.color?"selected":""}>${c}</option>`).join("")}</select><button class="delete" data-delete-id="${clientId}" title="删除分组">×</button>`;
   return `<section class="group ${ungrouped?"ungrouped":""}"><div class="group-head"><span class="dot"></span><span class="group-name">${title}</span><span class="group-tools"><span class="group-count">${ids.length} 个</span>${tools}</span></div><div class="group-body" data-group-id="${clientId}">${ids.map(tabHtml).join("") || '<div class="empty">拖动标签到这里</div>'}</div></section>`;
 }
 function render() {
@@ -53,6 +53,7 @@ function bindWorkspace() {
   document.querySelectorAll(".name-input").forEach(input => input.addEventListener("change", () => { state = renameGroup(state, input.dataset.groupId, input.value); render(); }));
   document.querySelectorAll(".color").forEach(select => select.addEventListener("change", () => { state = setGroupColor(state, select.dataset.colorId, select.value); }));
   document.querySelectorAll(".delete").forEach(button => button.addEventListener("click", () => { state = removeGroup(state, button.dataset.deleteId); render(); }));
+  document.querySelectorAll(".reorder").forEach(button => button.addEventListener("click", () => { state = moveGroup(state, button.dataset.moveId, Number(button.dataset.delta)); render(); }));
 }
 async function loadWorkspace() {
   try { const response = await send({ type: "workspace:get" }); state = createEditorState(response.snapshot); render(); }

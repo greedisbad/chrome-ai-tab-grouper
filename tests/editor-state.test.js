@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createEditorState, moveTab, resetDraft, addGroup, removeGroup } from "../src/panel/editor-state.js";
+import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, moveGroup } from "../src/panel/editor-state.js";
 import { snapshot } from "./fixtures.js";
 
 test("moveTab moves a tab between ungrouped and groups", () => {
@@ -23,4 +23,11 @@ test("groups can be added and removed without losing tabs", () => {
   state = moveTab(state, 1, id, 0);
   state = removeGroup(state, id);
   assert.deepEqual(state.draft.ungroupedTabIds, [1]);
+});
+
+test("moveGroup changes group order", () => {
+  let state = addGroup(createEditorState(snapshot), "New", "green");
+  const id = state.draft.groups[1].clientId;
+  state = moveGroup(state, id, -1);
+  assert.equal(state.draft.groups[0].clientId, id);
 });

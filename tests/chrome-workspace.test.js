@@ -37,4 +37,17 @@ test("applyDraft applies native ungroup, group and metadata operations", async (
   await applyDraft(api, snapshot, draft);
   assert.ok(api.calls.some(call => call[0] === "ungroup"));
   assert.ok(api.calls.some(call => call[0] === "update" && call[2].title === "Code"));
+  assert.ok(api.calls.some(call => call[0] === "move"));
+});
+
+test("applyDraft recreates a group when a snapshot group ID no longer exists", async () => {
+  const api = chromeMock();
+  const current = { ...snapshot, groups: [{ id: 20, title: "Current", color: "red" }], tabs: snapshot.tabs.map(tab => ({ ...tab, groupId: tab.id === 1 ? -1 : 20 })) };
+  api.tabs.query = async () => current.tabs;
+  api.tabGroups.query = async () => current.groups;
+  const oldDraft = snapshotToDraft(snapshot);
+  await applyDraft(api, current, oldDraft);
+  const groupCall = api.calls.find(call => call[0] === "group");
+  assert.equal(groupCall[1].groupId, undefined);
+  assert.deepEqual(groupCall[1].createProperties, { windowId: 1 });
 });
