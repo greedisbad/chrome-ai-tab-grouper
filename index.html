@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabloom · AI 标签整理台</title>
+  <style>
+    :root {
+      --ink: #1f2a26;
+      --muted: #748079;
+      --paper: #f5f3ec;
+      --panel: rgba(255, 255, 252, .86);
+      --line: #dcdcd4;
+      --green: #276856;
+      --green-soft: #dcebe4;
+      --orange: #e37742;
+      --yellow: #f0c65a;
+      --blue: #5792bd;
+      --purple: #8c7bb4;
+      --red: #c9665c;
+      --shadow: 0 18px 46px rgba(43, 52, 46, .10);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 1080px;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% 2%, rgba(227,119,66,.12), transparent 28%),
+        radial-gradient(circle at 88% 12%, rgba(39,104,86,.12), transparent 30%),
+        var(--paper);
+      font-family: "Avenir Next", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(39,104,86,.2); outline-offset: 2px;
+    }
+
+    .app { height: 100%; display: grid; grid-template-rows: 68px 1fr 74px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; border-bottom: 1px solid rgba(31,42,38,.1);
+      background: rgba(245,243,236,.76); backdrop-filter: blur(18px); z-index: 5;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark {
+      position: relative; width: 34px; height: 34px; border-radius: 11px;
+      background: var(--ink); box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+    }
+    .mark::before, .mark::after { content: ""; position: absolute; border-radius: 5px; }
+    .mark::before { width: 14px; height: 18px; left: 7px; top: 8px; background: #fffdf5; }
+    .mark::after { width: 11px; height: 13px; right: 5px; bottom: 6px; background: var(--orange); }
+    .brand strong { font-family: Georgia, "Songti SC", serif; font-size: 21px; letter-spacing: -.35px; }
+    .brand span { color: var(--muted); font-size: 12px; border-left: 1px solid var(--line); padding-left: 12px; }
+    .head-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn, .soft-btn, .primary-btn, .danger-btn {
+      border: 0; cursor: pointer; border-radius: 10px; transition: .18s ease;
+    }
+    .icon-btn { width: 38px; height: 38px; background: transparent; display: grid; place-items: center; }
+    .icon-btn:hover { background: rgba(31,42,38,.07); transform: translateY(-1px); }
+    .profile { width: 32px; height: 32px; border-radius: 50%; background: #d9b379; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+
+    main { min-height: 0; display: grid; grid-template-columns: minmax(390px, .92fr) 60px minmax(520px, 1.25fr); padding: 20px 24px 14px; gap: 14px; }
+    .pane {
+      min-height: 0; display: grid; grid-template-rows: auto auto 1fr;
+      background: var(--panel); border: 1px solid rgba(31,42,38,.11); border-radius: 18px;
+      box-shadow: var(--shadow); overflow: hidden; backdrop-filter: blur(14px);
+      animation: rise .45s both;
+    }
+    .pane.target { animation-delay: .08s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .pane-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 20px 15px; }
+    .eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
+    h1 { font: 600 23px/1.15 Georgia, "Songti SC", serif; margin: 6px 0 3px; }
+    .sub { color: var(--muted); font-size: 12px; }
+    .count { min-width: 42px; height: 30px; display: grid; place-items: center; background: #f0efe9; border: 1px solid var(--line); border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .filters { display: flex; align-items: center; gap: 8px; padding: 0 20px 14px; }
+    .search { flex: 1; position: relative; }
+    .search input { width: 100%; padding: 10px 12px 10px 35px; border: 1px solid var(--line); border-radius: 10px; background: rgba(250,250,247,.8); color: var(--ink); }
+    .search svg { position: absolute; left: 11px; top: 10px; color: var(--muted); }
+    .select {
+      padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px;
+      background: rgba(250,250,247,.8); color: var(--ink); font-size: 12px;
+    }
+    .scroll { min-height: 0; overflow: auto; padding: 0 12px 18px; scrollbar-width: thin; scrollbar-color: #c7c9c2 transparent; }
+    .section-label { display: flex; align-items: center; gap: 8px; padding: 12px 8px 8px; font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: .3px; }
+    .section-label::after { content:""; height:1px; flex:1; background: var(--line); }
+    .tab-row {
+      display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center;
+      min-height: 54px; padding: 8px 9px; margin: 3px 0; border: 1px solid transparent;
+      border-radius: 11px; cursor: grab; background: transparent; transition: .15s ease;
+    }
+    .tab-row:hover { background: #fff; border-color: var(--line); transform: translateX(2px); }
+    .tab-row.selected { background: var(--green-soft); border-color: rgba(39,104,86,.24); }
+    .favicon { width: 28px; height: 28px; border-radius: 8px; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:800; }
+    .gh { background:#252a28; } .doc { background:#4f84b8; } .local { background:#e27843; } .fig { background:#946ea0; } .mail { background:#c85d55; } .meet { background:#2d8c70; }
+    .tab-copy { min-width: 0; }
+    .tab-title { font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tab-url { margin-top: 3px; font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tag { font-size: 9px; font-weight: 800; color: var(--muted); background: #eeeee8; padding: 4px 6px; border-radius: 6px; }
+
+    .transfer { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+    .round-btn {
+      width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(31,42,38,.12);
+      background: rgba(255,255,252,.8); cursor: pointer; box-shadow: 0 8px 22px rgba(31,42,38,.08); transition: .2s;
+    }
+    .round-btn:hover { background: var(--ink); color: white; transform: scale(1.06); }
+    .transfer small { writing-mode: vertical-rl; color: var(--muted); font-size: 9px; letter-spacing: 1px; }
+
+    .mode-tabs { display: flex; padding: 0 20px 14px; gap: 4px; }
+    .mode {
+      flex: 1; border: 1px solid transparent; background: #efeee8; border-radius: 9px;
+      padding: 9px 8px; cursor: pointer; font-size: 11px; font-weight: 700; transition: .15s;
+    }
+    .mode.active { background: var(--ink); color: #fff; box-shadow: 0 5px 14px rgba(31,42,38,.16); }
+    .mode:not(.active):hover { border-color: #c9cbc4; }
+    .proposal-note {
+      margin: 0 8px 10px; padding: 11px 12px; border-radius: 11px; background: #f7ecd9;
+      border: 1px solid #eed3a8; color: #745438; font-size: 11px; display: flex; justify-content: space-between;
+    }
+    .group-card {
+      border: 1px solid var(--line); background: rgba(255,255,255,.65); border-radius: 13px;
+      margin: 8px; overflow: hidden; transition: .18s ease;
+    }
+    .group-card:hover { border-color: #bfc4bd; box-shadow: 0 8px 18px rgba(31,42,38,.05); }
+    .group-head { display:grid; grid-template-columns: 12px 1fr auto; align-items:center; gap:9px; padding: 11px 12px; cursor:pointer; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(39,104,86,.1); }
+    .group-card:nth-of-type(4) .dot { background: var(--orange); box-shadow: 0 0 0 4px rgba(227,119,66,.11); }
+    .group-card:nth-of-type(5) .dot { background: var(--blue); box-shadow: 0 0 0 4px rgba(87,146,189,.11); }
+    .group-name { display:flex; align-items:center; gap:7px; min-width:0; }
+    .group-name input { min-width: 0; width: 170px; border:0; background:transparent; padding:3px 4px; font-weight:750; color:var(--ink); }
+    .group-name input:hover, .group-name input:focus { background:#f0f0ea; border-radius:5px; outline:none; }
+    .ai-badge { font-size:8px; font-weight:900; letter-spacing:.5px; color:var(--green); border:1px solid rgba(39,104,86,.24); padding:3px 5px; border-radius:5px; }
+    .group-meta { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:10px; }
+    .group-body { padding: 0 7px 7px; }
+    .group-body .tab-row { min-height: 46px; background:#f8f8f4; margin:3px 0; }
+    .group-body .favicon { width:24px; height:24px; border-radius:7px; font-size:10px; }
+    .group-body .tab-row { grid-template-columns: 26px 1fr auto; }
+    .group-body .tab-title { font-size:12px; }
+    .change { font-size:9px; color:#98622c; background:#f7e7cf; border-radius:6px; padding:4px 6px; }
+    .delete-group { border:0; background:transparent; cursor:pointer; color:var(--muted); padding:4px; }
+    .delete-group:hover { color:var(--red); }
+    .add-group { width: calc(100% - 16px); margin: 8px; padding: 12px; border: 1px dashed #bfc4bd; background: transparent; border-radius: 12px; color:var(--muted); cursor:pointer; }
+    .add-group:hover { color:var(--green); border-color:var(--green); background:rgba(39,104,86,.04); }
+
+    footer {
+      display:flex; align-items:center; justify-content:space-between; padding:0 28px;
+      border-top:1px solid rgba(31,42,38,.1); background:rgba(245,243,236,.85); backdrop-filter:blur(18px);
+    }
+    .status { display:flex; gap:20px; align-items:center; color:var(--muted); font-size:11px; }
+    .status strong { color:var(--ink); }
+    .privacy { display:flex; align-items:center; gap:7px; }
+    .privacy::before { content:""; width:7px; height:7px; border-radius:50%; background:#59a57d; box-shadow:0 0 0 4px rgba(89,165,125,.13); }
+    .footer-actions { display:flex; gap:9px; align-items:center; }
+    .soft-btn, .primary-btn, .danger-btn { padding:11px 15px; font-size:12px; font-weight:750; }
+    .soft-btn { background:#ebeae4; border:1px solid #d8d8d1; }
+    .soft-btn:hover { background:#e1e1db; }
+    .primary-btn { color:#fff; background:var(--green); min-width:140px; box-shadow:0 7px 18px rgba(39,104,86,.22); }
+    .primary-btn:hover { background:#1f5b4a; transform:translateY(-1px); }
+    .primary-btn.loading { background:#79988d; pointer-events:none; }
+
+    .overlay { position:fixed; inset:0; background:rgba(24,31,28,.42); backdrop-filter:blur(5px); z-index:20; opacity:0; pointer-events:none; transition:.2s; }
+    .overlay.open { opacity:1; pointer-events:auto; }
+    .drawer {
+      position:absolute; right:0; top:0; bottom:0; width:460px; background:#faf9f4; padding:28px;
+      box-shadow:-28px 0 70px rgba(23,31,27,.20); transform:translateX(30px); transition:.25s ease; overflow:auto;
+    }
+    .overlay.open .drawer { transform:none; }
+    .drawer-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:26px; }
+    .drawer h2 { margin:5px 0 4px; font:600 26px Georgia,"Songti SC",serif; }
+    .field { margin:16px 0; }
+    .field label { display:block; margin-bottom:7px; font-size:11px; font-weight:800; color:#59655f; }
+    .field input, .field select, .field textarea { width:100%; border:1px solid #d5d7d0; border-radius:10px; background:#fff; padding:11px 12px; color:var(--ink); }
+    .field textarea { min-height:88px; resize:vertical; line-height:1.55; }
+    .hint { margin-top:6px; color:var(--muted); font-size:10px; line-height:1.45; }
+    .radio-line { display:flex; align-items:center; gap:8px; padding:9px 0; font-size:12px; }
+    .drawer-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:26px; }
+    .connection { display:flex; align-items:center; justify-content:space-between; padding:11px 12px; border-radius:10px; background:#e7f0eb; color:#336b55; font-size:11px; }
+
+    .toast { position:fixed; left:50%; bottom:88px; z-index:30; transform:translate(-50%, 16px); opacity:0; pointer-events:none; background:#202a26; color:#fff; padding:11px 16px; border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.22); font-size:12px; transition:.25s; }
+    .toast.show { opacity:1; transform:translate(-50%, 0); }
+    .empty { padding:28px 12px; text-align:center; color:var(--muted); font-size:11px; border:1px dashed var(--line); border-radius:11px; margin:4px 8px; }
+    svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="mark"></div>
+        <strong>Tabloom</strong>
+        <span>AI 标签整理台 · 窗口 1</span>
+      </div>
+      <div class="head-actions">
+        <button class="icon-btn" id="undoTop" title="撤销上一次整理" aria-label="撤销">
+          <svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a6 6 0 0 1 6 6"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" title="模型设置" aria-label="设置">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21h-4v-.08a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3v-4h.08a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3h4v.08a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.14.6.66 1.01 1.27 1.02H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+        </button>
+        <div class="profile">内</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="pane source">
+        <div class="pane-head">
+          <div><div class="eyebrow">Current browser</div><h1>当前标签</h1><div class="sub">这里保持 Chrome 现在的真实状态</div></div>
+          <div class="count" id="sourceCount">8</div>
+        </div>
+        <div class="filters">
+          <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="search" placeholder="搜索标题或域名" /></div>
+          <select class="select"><option>窗口 1</option><option>窗口 2</option></select>
+        </div>
+        <div class="scroll" id="sourceList">
+          <div class="section-label">未分组 · 6</div>
+          <div class="tab-row" draggable="true" data-id="1" data-title="feat/auth · Pull Request #184" data-url="github.com/acme/web" data-icon="GH" data-class="gh"><div class="favicon gh">GH</div><div class="tab-copy"><div class="tab-title">feat/auth · Pull Request #184</div><div class="tab-url">github.com/acme/web/pull/184</div></div><span class="tag">代码</span></div>
+          <div class="tab-row" draggable="true" data-id="2" data-title="Authentication flow – Figma" data-url="figma.com/design/auth" data-icon="F" data-class="fig"><div class="favicon fig">F</div><div class="tab-copy"><div class="tab-title">Authentication flow – Figma</div><div class="tab-url">figma.com/design/auth</div></div><span class="tag">设计</span></div>
+          <div class="tab-row" draggable="true" data-id="3" data-title="OAuth 2.0 documentation" data-url="developers.google.com/identity" data-icon="D" data-class="doc"><div class="favicon doc">D</div><div class="tab-copy"><div class="tab-title">OAuth 2.0 documentation</div><div class="tab-url">developers.google.com/identity</div></div><span class="tag">文档</span></div>
+          <div class="tab-row" draggable="true" data-id="4" data-title="localhost:5173 / login" data-url="localhost:5173/login" data-icon="L" data-class="local"><div class="favicon local">L</div><div class="tab-copy"><div class="tab-title">localhost:5173 / login</div><div class="tab-url">localhost:5173/login</div></div><span class="tag">本地</span></div>
+          <div class="tab-row" draggable="true" data-id="5" data-title="staging · User Console" data-url="staging.internal.example.com" data-icon="S" data-class="local"><div class="favicon local">S</div><div class="tab-copy"><div class="tab-title">staging · User Console</div><div class="tab-url">staging.internal.example.com</div></div><span class="tag">测试</span></div>
+          <div class="tab-row" draggable="true" data-id="6" data-title="Inbox (12) – Team Mail" data-url="mail.example.com" data-icon="M" data-class="mail"><div class="favicon mail">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div><div class="tab-url">mail.example.com</div></div><span class="tag">沟通</span></div>
+          <div class="section-label">已有分组 · 1</div>
+          <div class="tab-row" draggable="true" data-id="7" data-title="Sprint 28 board" data-url="jira.example.com/sprint/28" data-icon="J" data-class="doc"><div class="favicon doc">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div><div class="tab-url">jira.example.com/sprint/28</div></div><span class="tag">工作</span></div>
+          <div class="tab-row" draggable="true" data-id="8" data-title="Daily stand-up" data-url="meet.google.com/abc" data-icon="V" data-class="meet"><div class="favicon meet">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div><div class="tab-url">meet.google.com/abc</div></div><span class="tag">工作</span></div>
+        </div>
+      </section>
+
+      <aside class="transfer">
+        <button class="round-btn" id="moveSelected" title="把选中项加入方案">→</button>
+        <small>拖动或选择标签</small>
+      </aside>
+
+      <section class="pane target">
+        <div class="pane-head">
+          <div><div class="eyebrow">Proposed arrangement</div><h1>整理方案</h1><div class="sub">所有改变都只在这里预览，应用后才会修改 Chrome</div></div>
+          <div class="count" id="planCount">8</div>
+        </div>
+        <div class="mode-tabs">
+          <button class="mode active" data-mode="loose">整理未分组</button>
+          <button class="mode" data-mode="improve">优化现有分组</button>
+          <button class="mode" data-mode="reset">完全重新分组</button>
+        </div>
+        <div class="scroll" id="plan">
+          <div class="proposal-note"><span>AI 建议了 3 个组，并准备重命名 1 个已有组</span><strong>可编辑草稿</strong></div>
+
+          <article class="group-card" data-group="auth">
+            <div class="group-head"><span class="dot"></span><div class="group-name"><input value="认证功能开发" aria-label="分组名称"/><span class="ai-badge">AI 新建</span></div><div class="group-meta"><span>4 个</span><button class="delete-group" aria-label="删除分组">×</button></div></div>
+            <div class="group-body dropzone">
+              <div class="tab-row" draggable="true" data-id="1"><div class="favicon gh">GH</div><div class="tab-copy"><div class="tab-title">feat/auth · Pull Request #184</div><div class="tab-url">github.com/acme/web/pull/184</div></div><span class="change">移入</span></div>
+              <div class="tab-row" draggable="true" data-id="2"><div class="favicon fig">F</div><div class="tab-copy"><div class="tab-title">Authentication flow – Figma</div><div class="tab-url">figma.com/design/auth</div></div><span class="change">移入</span></div>
+              <div class="tab-row" draggable="true" data-id="3"><div class="favicon doc">D</div><div class="tab-copy"><div class="tab-title">OAuth 2.0 documentation</div><div class="tab-url">developers.google.com/identity</div></div><span class="change">移入</span></div>
+              <div class="tab-row" draggable="true" data-id="4"><div class="favicon local">L</div><div class="tab-copy"><div class="tab-title">localhost:5173 / login</div><div class="tab-url">localhost:5173/login</div></div><span class="change">移入</span></div>
+            </div>
+          </article>
+
+          <article class="group-card" data-group="qa">
+            <div class="group-head"><span class="dot"></span><div class="group-name"><input value="测试与验收" aria-label="分组名称"/><span class="ai-badge">AI 新建</span></div><div class="group-meta"><span>1 个</span><button class="delete-group" aria-label="删除分组">×</button></div></div>
+            <div class="group-body dropzone">
+              <div class="tab-row" draggable="true" data-id="5"><div class="favicon local">S</div><div class="tab-copy"><div class="tab-title">staging · User Console</div><div class="tab-url">staging.internal.example.com</div></div><span class="change">移入</span></div>
+            </div>
+          </article>
+
+          <article class="group-card" data-group="daily">
+            <div class="group-head"><span class="dot"></span><div class="group-name"><input value="Sprint 28 · 日常协作" aria-label="分组名称"/><span class="ai-badge">建议改名</span></div><div class="group-meta"><span>3 个</span><button class="delete-group" aria-label="删除分组">×</button></div></div>
+            <div class="group-body dropzone">
+              <div class="tab-row" draggable="true" data-id="6"><div class="favicon mail">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div><div class="tab-url">mail.example.com</div></div><span class="change">移入</span></div>
+              <div class="tab-row" draggable="true" data-id="7"><div class="favicon doc">J</div><div class="tab-copy"><div class="tab-title">Sprint 28 board</div><div class="tab-url">jira.example.com/sprint/28</div></div><span class="tag">保留</span></div>
+              <div class="tab-row" draggable="true" data-id="8"><div class="favicon meet">V</div><div class="tab-copy"><div class="tab-title">Daily stand-up</div><div class="tab-url">meet.google.com/abc</div></div><span class="tag">保留</span></div>
+            </div>
+          </article>
+          <button class="add-group" id="addGroup">＋ 新建空分组</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="status"><span><strong id="summary">3 个分组 · 8 个标签</strong></span><span class="privacy">将发送标题与 URL 到 DeepSeek</span></div>
+      <div class="footer-actions">
+        <button class="soft-btn" id="regenerate">重新生成方案</button>
+        <button class="soft-btn" id="undoBottom">撤销上次整理</button>
+        <button class="primary-btn" id="apply">应用到 Chrome</button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="模型与整理偏好">
+      <div class="drawer-head"><div><div class="eyebrow">Settings</div><h2>模型与整理偏好</h2><div class="sub">内部工具 · 配置仅保存在当前浏览器</div></div><button class="icon-btn" id="closeSettings" aria-label="关闭">×</button></div>
+      <div class="field"><label>接口类型</label><select><option>OpenAI Compatible</option><option>Chrome 内置模型（实验）</option></select></div>
+      <div class="field"><label>Base URL</label><input value="https://api.deepseek.com" placeholder="例如 http://localhost:11434/v1"/><div class="hint">也支持 localhost。首次连接新域名时，Chrome 会请求访问权限。</div></div>
+      <div class="field"><label>API Key</label><input type="password" value="sk-demo-not-a-real-key"/><div class="hint">原型不会发送或保存这个值。正式版默认只在本次浏览器会话中保留。</div></div>
+      <div class="field"><label>模型名称</label><input value="deepseek-chat" placeholder="输入服务端支持的模型名"/></div>
+      <div class="connection"><span>● 配置可用（模拟）</span><button class="soft-btn" id="testConnection">重新测试</button></div>
+      <div class="field"><label>发送给模型的内容</label><label class="radio-line"><input type="radio" name="scope"/> 仅发送域名</label><label class="radio-line"><input type="radio" name="scope" checked/> 发送标题与 URL</label><label class="radio-line"><input type="radio" name="scope" disabled/> 页面摘要（后续版本）</label></div>
+      <div class="field"><label>我的整理偏好</label><textarea>优先按项目而不是网站分组。localhost 和对应的 staging 环境放在一起。不要移动固定标签。</textarea><div class="hint">这是追加给系统规则的偏好；不会覆盖安全和输出格式约束。</div></div>
+      <div class="drawer-actions"><button class="soft-btn" id="resetSettings">恢复默认</button><button class="primary-btn" id="saveSettings">保存设置</button></div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast">已完成</div>
+
+  <script>
+    const $ = (s, root = document) => root.querySelector(s);
+    const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+    const toast = (message) => {
+      const el = $('#toast'); el.textContent = message; el.classList.add('show');
+      clearTimeout(window.__toast); window.__toast = setTimeout(() => el.classList.remove('show'), 2200);
+    };
+
+    const updateSummary = () => {
+      const groups = $$('.group-card');
+      const tabs = $$('.group-card .tab-row');
+      groups.forEach(g => $('.group-meta span', g).textContent = `${$$('.tab-row', g).length} 个`);
+      $('#summary').textContent = `${groups.length} 个分组 · ${tabs.length} 个标签`;
+      $('#planCount').textContent = tabs.length;
+    };
+
+    $('#settingsBtn').onclick = () => { $('#overlay').classList.add('open'); $('#overlay').setAttribute('aria-hidden','false'); };
+    $('#closeSettings').onclick = () => { $('#overlay').classList.remove('open'); $('#overlay').setAttribute('aria-hidden','true'); };
+    $('#overlay').onclick = e => { if (e.target === $('#overlay')) $('#closeSettings').click(); };
+    $('#saveSettings').onclick = () => { $('#closeSettings').click(); toast('模型设置已保存（模拟）'); };
+    $('#resetSettings').onclick = () => toast('已恢复推荐设置');
+    $('#testConnection').onclick = e => { e.currentTarget.textContent = '测试中…'; setTimeout(() => { e.currentTarget.textContent = '重新测试'; toast('连接成功 · 842 ms（模拟）'); }, 800); };
+
+    $$('.mode').forEach(btn => btn.onclick = () => {
+      $$('.mode').forEach(x => x.classList.remove('active')); btn.classList.add('active');
+      const copy = { loose:'只处理未分组标签，已有结构保持不变', improve:'AI 会提出改名、合并和拆分建议', reset:'将忽略现有结构并完全重新规划' };
+      $('.proposal-note span').textContent = copy[btn.dataset.mode];
+      toast(`已切换：${btn.textContent}`);
+    });
+
+    $('#search').oninput = e => {
+      const q = e.target.value.toLowerCase();
+      $$('#sourceList .tab-row').forEach(row => row.style.display = row.textContent.toLowerCase().includes(q) || row.dataset.url.toLowerCase().includes(q) ? '' : 'none');
+    };
+    $$('#sourceList .tab-row').forEach(row => row.onclick = () => row.classList.toggle('selected'));
+
+    $('#moveSelected').onclick = () => {
+      const selected = $$('#sourceList .tab-row.selected');
+      if (!selected.length) return toast('请先在左侧选择标签');
+      selected.forEach(source => {
+        if ($(`.group-card .tab-row[data-id="${source.dataset.id}"]`)) return;
+        const clone = source.cloneNode(true); clone.classList.remove('selected');
+        $('.group-card .dropzone').appendChild(clone); wireDrag(clone);
+      });
+      updateSummary(); toast(`已将 ${selected.length} 个标签加入第一个分组`);
+    };
+
+    let dragging = null;
+    function wireDrag(row) {
+      row.addEventListener('dragstart', () => { dragging = row; row.style.opacity = '.45'; });
+      row.addEventListener('dragend', () => { row.style.opacity = ''; dragging = null; updateSummary(); });
+    }
+    $$('.group-card .tab-row').forEach(wireDrag);
+    $$('.dropzone').forEach(zone => {
+      zone.addEventListener('dragover', e => e.preventDefault());
+      zone.addEventListener('drop', e => { e.preventDefault(); if (dragging && dragging.closest('.group-card')) { zone.appendChild(dragging); toast('标签已移动到新分组'); } });
+    });
+
+    document.addEventListener('click', e => {
+      if (e.target.matches('.delete-group')) {
+        const card = e.target.closest('.group-card');
+        card.style.opacity = '0'; card.style.transform = 'scale(.97)';
+        setTimeout(() => { card.remove(); updateSummary(); toast('分组已从方案中移除'); }, 180);
+      }
+    });
+
+    $('#addGroup').onclick = () => {
+      const card = document.createElement('article'); card.className = 'group-card';
+      card.innerHTML = `<div class="group-head"><span class="dot"></span><div class="group-name"><input value="未命名分组" aria-label="分组名称"/><span class="ai-badge">手动新建</span></div><div class="group-meta"><span>0 个</span><button class="delete-group" aria-label="删除分组">×</button></div></div><div class="group-body dropzone"><div class="empty">把标签拖到这里</div></div>`;
+      $('#plan').insertBefore(card, $('#addGroup'));
+      const zone = $('.dropzone', card);
+      zone.addEventListener('dragover', e => e.preventDefault());
+      zone.addEventListener('drop', e => { e.preventDefault(); if (dragging && dragging.closest('.group-card')) { $('.empty', zone)?.remove(); zone.appendChild(dragging); updateSummary(); } });
+      $('input', card).focus(); $('input', card).select(); updateSummary();
+    };
+
+    $('#regenerate').onclick = e => {
+      e.currentTarget.textContent = 'AI 正在整理…'; e.currentTarget.disabled = true;
+      $('.target').style.opacity = '.65';
+      setTimeout(() => { e.currentTarget.textContent = '重新生成方案'; e.currentTarget.disabled = false; $('.target').style.opacity = ''; toast('AI 已生成一版新方案（模拟）'); }, 1250);
+    };
+    $('#apply').onclick = e => {
+      e.currentTarget.textContent = '正在应用…'; e.currentTarget.classList.add('loading');
+      setTimeout(() => { e.currentTarget.textContent = '已应用'; toast('已创建 3 个 Chrome 原生分组（模拟）'); setTimeout(() => { e.currentTarget.textContent = '应用到 Chrome'; e.currentTarget.classList.remove('loading'); }, 1300); }, 900);
+    };
+    const undo = () => toast('已恢复到整理前的分组状态（模拟）');
+    $('#undoTop').onclick = undo; $('#undoBottom').onclick = undo;
+    updateSummary();
+  </script>
+</body>
+</html>
