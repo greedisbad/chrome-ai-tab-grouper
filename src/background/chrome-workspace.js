@@ -31,6 +31,7 @@ export async function applyDraft(chromeApi, before, draft) {
     }
   }
   for (const group of draft.groups) {
+    if (!group.tabIds.length) continue;
     const id = groupIds.get(group.clientId) ?? group.chromeGroupId;
     if (id != null) await chromeApi.tabGroups.move(id, { index: -1 });
   }

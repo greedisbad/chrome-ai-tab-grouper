@@ -14,3 +14,10 @@ test("buildSavePlan ungroups tabs and creates new groups", () => {
   assert.ok(plan.some(op => op.type === "group" && op.clientId === "new"));
   assert.ok(plan.some(op => op.type === "updateGroup" && op.title === "Code"));
 });
+
+test("buildSavePlan ignores empty placeholder groups", () => {
+  const draft = snapshotToDraft(snapshot);
+  draft.groups.push({ clientId: "empty", title: "稍后整理", color: "blue", tabIds: [] });
+  const plan = buildSavePlan(snapshot, draft);
+  assert.equal(plan.some(operation => operation.clientId === "empty"), false);
+});

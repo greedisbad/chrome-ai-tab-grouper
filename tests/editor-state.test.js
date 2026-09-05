@@ -31,3 +31,10 @@ test("moveGroup changes group order", () => {
   state = moveGroup(state, id, -1);
   assert.equal(state.draft.groups[0].clientId, id);
 });
+
+test("createEditorState preserves empty placeholder groups after saving", () => {
+  const empty = { clientId: "empty", title: "稍后整理", color: "blue", tabIds: [] };
+  const state = createEditorState(snapshot, [empty]);
+  assert.deepEqual(state.draft.groups.at(-1), empty);
+  assert.deepEqual(state.original.groups.at(-1), empty);
+});

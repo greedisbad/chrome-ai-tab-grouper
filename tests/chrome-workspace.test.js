@@ -51,3 +51,12 @@ test("applyDraft recreates a group when a snapshot group ID no longer exists", a
   assert.equal(groupCall[1].groupId, undefined);
   assert.deepEqual(groupCall[1].createProperties, { windowId: 1 });
 });
+
+test("applyDraft never updates or moves an empty native group", async () => {
+  const api = chromeMock();
+  const draft = snapshotToDraft(snapshot);
+  draft.ungroupedTabIds.push(...draft.groups[0].tabIds);
+  draft.groups[0].tabIds = [];
+  await applyDraft(api, snapshot, draft);
+  assert.equal(api.calls.some(call => ["update", "move"].includes(call[0]) && call[1] === 10), false);
+});

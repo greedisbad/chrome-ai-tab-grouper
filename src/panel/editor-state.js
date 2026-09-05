@@ -1,7 +1,11 @@
 import { cloneDraft, snapshotToDraft } from "../domain/draft.js";
 
-export function createEditorState(snapshot) {
+export function createEditorState(snapshot, preservedEmptyGroups = []) {
   const original = snapshotToDraft(snapshot);
+  const existingClientIds = new Set(original.groups.map(group => group.clientId));
+  original.groups.push(...preservedEmptyGroups
+    .filter(group => group.tabIds.length === 0 && !existingClientIds.has(group.clientId))
+    .map(group => ({ ...group, tabIds: [] })));
   return { original, draft: cloneDraft(original), dirty: false };
 }
 export function resetDraft(state) { return { ...state, draft: cloneDraft(state.original), dirty: false }; }
