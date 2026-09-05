@@ -25,3 +25,8 @@ test("module service worker does not use dynamic import", async () => {
   const source = await readFile(new URL("../src/background/service-worker.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /\bimport\s*\(/, "Chrome ServiceWorkerGlobalScope 禁止动态 import()；请使用顶层静态导入");
 });
+
+test("saving model settings does not clear the visible API key", async () => {
+  const source = await readFile(new URL("../src/panel/panel.js", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /form\.apiKey\.value\s*=\s*["']{2}/, "保存设置后不应立即清空用户正在查看的 API Key");
+});

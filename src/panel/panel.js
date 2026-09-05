@@ -71,7 +71,7 @@ $("#aiAction").addEventListener("click", async () => { try { busy(true); $("#aiA
 const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),preference:$("#preference")};
 $("#settingsButton").addEventListener("click", async()=>{$("#editorView").classList.add("hidden");$("#toolbar").classList.add("hidden");$("#settingsView").classList.remove("hidden");await loadSettings(form)});
 $("#settingsBack").addEventListener("click",()=>{$("#settingsView").classList.add("hidden");$("#editorView").classList.remove("hidden");$("#toolbar").classList.remove("hidden")});
-$("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);form.apiKey.value="";toast("模型设置已保存")}catch(error){toast(error.message,true)}});
+$("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);toast("模型设置已保存")}catch(error){toast(error.message,true)}});
 $("#testConnection").addEventListener("click",async()=>{try{await saveSettings(form);const result=await send({type:"settings:test"});toast(result.message||"连接成功")}catch(error){toast(error.message,true)}});
 
 loadWorkspace();
