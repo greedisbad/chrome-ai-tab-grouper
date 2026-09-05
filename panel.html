@@ -10,7 +10,7 @@
     body { margin:0; min-width:360px; height:100vh; overflow:hidden; color:var(--ink); background:radial-gradient(circle at 90% 0,rgba(46,105,88,.13),transparent 29%),var(--paper); font-family:"Avenir Next","PingFang SC",sans-serif; }
     button,input,select { font:inherit; color:inherit; }
     button { cursor:pointer; }
-    .panel { width:min(100%,440px); height:100%; margin:auto; display:grid; grid-template-rows:auto 1fr auto; border-inline:1px solid rgba(33,48,42,.08); background:rgba(249,248,243,.83); backdrop-filter:blur(16px); }
+    .panel { position:relative;width:min(100%,440px); height:100%; margin:auto; display:grid; grid-template-rows:auto 1fr auto; border-inline:1px solid rgba(33,48,42,.08); background:rgba(249,248,243,.83); backdrop-filter:blur(16px); }
     header { display:flex; align-items:center; justify-content:space-between; padding:16px 17px 12px; }
     .brand { display:flex; align-items:center; gap:10px; }
     .mark { width:30px; height:30px; border-radius:10px; background:var(--ink); position:relative; }
@@ -44,7 +44,6 @@
     .tab-url { white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:9px;margin-top:2px; }
     .pill { border:0;border-radius:7px;padding:4px 6px;background:#ebece7;color:var(--muted);font-size:9px; }
     .pill:hover { color:var(--green);background:var(--soft); }
-    .summary { margin:7px 6px 3px;padding:11px 12px;background:#f7eadc;border:1px solid #ecd2b5;border-radius:12px;font-size:10px;color:#745139;line-height:1.45; }
     .rename { font-size:9px;color:#986032;background:#f7e7d4;padding:3px 5px;border-radius:5px; }
     .ai { font-size:8px;color:var(--green);border:1px solid rgba(46,105,88,.24);padding:3px 5px;border-radius:5px; }
     .proposal .group-name input { border:0;background:transparent;width:180px;font-weight:800;padding:2px 4px;border-radius:5px; }
@@ -70,8 +69,8 @@
     .primary:hover { background:#255a4b;transform:translateY(-1px); }
     .primary:disabled { background:#88a198;transform:none; }
     .footnote { text-align:center;color:var(--muted);font-size:9px;margin-top:7px; }
-    .toast { position:fixed;left:50%;bottom:18px;transform:translate(-50%,12px);opacity:0;background:#1f2d27;color:#fff;padding:9px 13px;border-radius:9px;font-size:10px;transition:.2s;z-index:8;pointer-events:none; }
-    .toast.show { opacity:1;transform:translate(-50%,0); }
+    .toast { position:absolute;right:12px;top:58px;max-width:260px;transform:translateY(-8px);opacity:0;background:#1f2d27;color:#fff;padding:9px 12px;border-radius:9px;font-size:10px;line-height:1.35;box-shadow:0 9px 24px rgba(24,34,29,.2);transition:.2s;z-index:8;pointer-events:none; }
+    .toast.show { opacity:1;transform:translateY(0); }
     @media (min-width:700px) { body { background:#dddcd6; }.panel { box-shadow:0 0 45px rgba(20,29,25,.14); } }
   </style>
 </head>
@@ -104,7 +103,6 @@
   </main>
 
   <main class="content proposal hidden" id="proposalView">
-    <div class="summary"><strong>AI 整理完成</strong><br>新建 2 个组，保留 1 个组；有 1 个标签保持未分组。</div>
     <div class="section-title">方案预览 <span>拖动即可修正</span></div>
     <section class="group ungrouped"><button class="group-head"><span class="dot"></span><span class="group-name">未分组</span><span class="group-meta"><span class="group-count">1 个</span> <span class="chev">⌄</span></span></button><div class="group-body"><div class="tab-row"><div class="favicon red">M</div><div class="tab-copy"><div class="tab-title">Inbox (12) – Team Mail</div></div><span class="pill" title="拖动标签">⠿</span></div></div></section>
     <section class="group">
@@ -120,15 +118,15 @@
     <div class="apply-line"><button class="secondary" id="aiAction">AI 整理</button><button class="secondary" id="resetPlan">重置</button><button class="primary" id="saveAction">保存调整</button></div>
     <div class="footnote">仅发送标题和 URL · DeepSeek · 可在设置中修改</div>
   </footer>
+  <div class="toast" id="toast"></div>
 </div>
-<div class="toast" id="toast"></div>
 <script>
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),1800)}
   function switchView(view){$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal')}
   $$('.group-head').forEach(b=>b.onclick=e=>{if(e.target.matches('input'))return;b.closest('.group').classList.toggle('closed')});
   $$('.mode').forEach(b=>b.onclick=()=>{$$('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
-  $('#aiAction').onclick=e=>{e.target.disabled=true;e.target.textContent='分析中…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='AI 整理';switchView('proposal');toast('方案已生成，可拖动标签后再应用')},950)};
+  $('#aiAction').onclick=e=>{e.target.disabled=true;e.target.textContent='分析中…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='AI 整理';switchView('proposal');toast('AI 整理完成 · 新建 2 个组，1 个标签保持未分组')},950)};
   $('#saveAction').onclick=e=>{e.target.disabled=true;e.target.textContent='正在保存…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='保存调整';toast('已保存到 Chrome 原生标签组（模拟）')},700)};
   $('#resetPlan').onclick=()=>window.location.reload();
   $('#undo').onclick=()=>toast('已撤销上一次整理（模拟）');$('#settings').onclick=()=>toast('模型设置将在独立页面打开');
