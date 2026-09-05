@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Tabloom - AI 标签分组",
+  "version": "0.1.0",
+  "description": "手动或使用 AI 整理 Chrome 原生标签组。",
+  "minimum_chrome_version": "114",
+  "permissions": ["tabs", "tabGroups", "storage", "sidePanel"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "src/background/service-worker.js", "type": "module" },
+  "action": { "default_title": "打开 Tabloom" },
+  "side_panel": { "default_path": "src/panel/panel.html" }
+}
