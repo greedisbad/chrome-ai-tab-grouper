@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, moveGroup } from "../src/panel/editor-state.js";
+import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, moveGroup, setGroupColor } from "../src/panel/editor-state.js";
 import { snapshot } from "./fixtures.js";
 
 test("moveTab moves a tab between ungrouped and groups", () => {
@@ -37,4 +37,10 @@ test("createEditorState preserves empty placeholder groups after saving", () => 
   const state = createEditorState(snapshot, [empty]);
   assert.deepEqual(state.draft.groups.at(-1), empty);
   assert.deepEqual(state.original.groups.at(-1), empty);
+});
+
+test("setGroupColor updates the selected Chrome color in the draft", () => {
+  const state = setGroupColor(createEditorState(snapshot), "chrome-10", "orange");
+  assert.equal(state.draft.groups[0].color, "orange");
+  assert.equal(state.dirty, true);
 });

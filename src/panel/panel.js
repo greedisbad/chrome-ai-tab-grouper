@@ -1,11 +1,11 @@
 import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, renameGroup, setGroupColor, moveGroup } from "./editor-state.js";
 import { loadSettings, saveSettings } from "./settings.js";
+import { GROUP_COLORS, getGroupColor } from "./group-colors.js";
 
 const $ = selector => document.querySelector(selector);
 let state;
 let mode = "ungrouped";
 let draggingTabId = null;
-const colors = ["grey","blue","red","yellow","green","pink","purple","cyan","orange"];
 
 function toast(message, error = false) {
   const element = $("#toast"); element.textContent = message; element.style.background = error ? "#8f403b" : "#1f2d27"; element.classList.add("show");
@@ -30,8 +30,11 @@ function groupHtml(group, ungrouped=false) {
   const ids = ungrouped ? state.draft.ungroupedTabIds : group.tabIds;
   const clientId = ungrouped ? "ungrouped" : group.clientId;
   const title = ungrouped ? "未分组" : `<input class="name-input" data-group-id="${clientId}" value="${escapeHtml(group.title)}">`;
-  const tools = ungrouped ? "" : `<button class="reorder" data-move-id="${clientId}" data-delta="-1" title="上移分组">↑</button><button class="reorder" data-move-id="${clientId}" data-delta="1" title="下移分组">↓</button><select class="color" data-color-id="${clientId}" title="分组颜色">${colors.map(c=>`<option value="${c}" ${c===group.color?"selected":""}>${c}</option>`).join("")}</select><button class="delete" data-delete-id="${clientId}" title="删除分组">×</button>`;
-  return `<section class="group ${ungrouped?"ungrouped":""}"><div class="group-head"><span class="dot"></span><span class="group-name">${title}</span><span class="group-tools"><span class="group-count">${ids.length} 个</span>${tools}</span></div><div class="group-body" data-group-id="${clientId}">${ids.map(tabHtml).join("") || '<div class="empty">拖动标签到这里</div>'}</div></section>`;
+  const currentColor = getGroupColor(group?.color);
+  const palette = GROUP_COLORS.map(color => `<button class="palette-color ${color.value===group.color?"selected":""}" data-color-id="${clientId}" data-color-value="${color.value}" style="--swatch:${color.hex}" title="${color.label}" aria-label="${color.label}" aria-pressed="${color.value===group.color}"></button>`).join("");
+  const tools = ungrouped ? "" : `<button class="reorder" data-move-id="${clientId}" data-delta="-1" title="上移分组">↑</button><button class="reorder" data-move-id="${clientId}" data-delta="1" title="下移分组">↓</button><span class="color-picker"><button class="color-swatch" data-color-toggle="${clientId}" style="--swatch:${currentColor.hex}" title="分组颜色：${currentColor.label}" aria-label="选择分组颜色，当前${currentColor.label}" aria-expanded="false"></button><span class="color-palette hidden" data-palette-id="${clientId}" role="group" aria-label="选择分组颜色">${palette}</span></span><button class="delete" data-delete-id="${clientId}" title="删除分组">×</button>`;
+  const dotColor = ungrouped ? "#a6aca8" : currentColor.hex;
+  return `<section class="group ${ungrouped?"ungrouped":""}"><div class="group-head"><span class="dot" style="--group-color:${dotColor}"></span><span class="group-name">${title}</span><span class="group-tools"><span class="group-count">${ids.length} 个</span>${tools}</span></div><div class="group-body" data-group-id="${clientId}">${ids.map(tabHtml).join("") || '<div class="empty">拖动标签到这里</div>'}</div></section>`;
 }
 function render() {
   if (!state) return;
@@ -51,10 +54,24 @@ function bindWorkspace() {
     zone.addEventListener("drop", event => { event.preventDefault(); zone.classList.remove("drag-over"); if (draggingTabId == null) return; const targetRow = event.target.closest(".tab-row"); const index = targetRow ? [...zone.querySelectorAll(".tab-row")].indexOf(targetRow) : Infinity; state = moveTab(state, draggingTabId, zone.dataset.groupId, index); render(); });
   });
   document.querySelectorAll(".name-input").forEach(input => input.addEventListener("change", () => { state = renameGroup(state, input.dataset.groupId, input.value); render(); }));
-  document.querySelectorAll(".color").forEach(select => select.addEventListener("change", () => { state = setGroupColor(state, select.dataset.colorId, select.value); }));
+  document.querySelectorAll("[data-color-toggle]").forEach(button => button.addEventListener("click", event => {
+    event.stopPropagation();
+    const palette = document.querySelector(`[data-palette-id="${button.dataset.colorToggle}"]`);
+    document.querySelectorAll(".color-palette").forEach(item => { if (item !== palette) item.classList.add("hidden"); });
+    document.querySelectorAll("[data-color-toggle]").forEach(item => { if (item !== button) item.setAttribute("aria-expanded", "false"); });
+    palette.classList.toggle("hidden");
+    button.setAttribute("aria-expanded", String(!palette.classList.contains("hidden")));
+  }));
+  document.querySelectorAll(".palette-color").forEach(button => button.addEventListener("click", event => { event.stopPropagation(); state = setGroupColor(state, button.dataset.colorId, button.dataset.colorValue); render(); }));
   document.querySelectorAll(".delete").forEach(button => button.addEventListener("click", () => { state = removeGroup(state, button.dataset.deleteId); render(); }));
   document.querySelectorAll(".reorder").forEach(button => button.addEventListener("click", () => { state = moveGroup(state, button.dataset.moveId, Number(button.dataset.delta)); render(); }));
 }
+function closeColorPalettes() {
+  document.querySelectorAll(".color-palette").forEach(palette => palette.classList.add("hidden"));
+  document.querySelectorAll("[data-color-toggle]").forEach(button => button.setAttribute("aria-expanded", "false"));
+}
+document.addEventListener("click", closeColorPalettes);
+document.addEventListener("keydown", event => { if (event.key === "Escape") closeColorPalettes(); });
 async function loadWorkspace() {
   try { const response = await send({ type: "workspace:get" }); state = createEditorState(response.snapshot); render(); }
   catch (error) { $("#workspace").innerHTML = `<div class="loading">${escapeHtml(error.message)}</div>`; toast(error.message, true); }
