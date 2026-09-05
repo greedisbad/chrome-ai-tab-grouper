@@ -64,7 +64,7 @@
     .mode { flex:1;border:1px solid var(--line);background:#efeee8;border-radius:8px;padding:7px 4px;font-size:9px;font-weight:750; }
     .mode.active { border-color:var(--green);background:var(--soft);color:var(--green); }
     .apply-line { display:flex;gap:8px; }
-    .secondary { flex:0 0 104px;border:1px solid #ccd0ca;border-radius:11px;background:#f0efe9;padding:12px 8px;font-size:11px;font-weight:800; }
+    .secondary { flex:0 0 88px;border:1px solid #ccd0ca;border-radius:11px;background:#f0efe9;padding:12px 8px;font-size:11px;font-weight:800; }
     .secondary:hover { background:#e7e6df; }
     .primary { flex:1;width:100%;border:0;border-radius:11px;background:var(--green);color:white;padding:12px;font-size:12px;font-weight:800;box-shadow:0 7px 17px rgba(46,105,88,.2); }
     .primary:hover { background:#255a4b;transform:translateY(-1px); }
@@ -117,7 +117,7 @@
 
   <footer>
     <div class="mode-line"><button class="mode active">整理未分组</button><button class="mode">优化已有组</button><button class="mode">全部重组</button></div>
-    <div class="apply-line"><button class="secondary" id="aiAction">AI 整理</button><button class="secondary hidden" id="resetPlan">恢复原先</button><button class="primary" id="saveAction">保存调整</button></div>
+    <div class="apply-line"><button class="secondary" id="aiAction">AI 整理</button><button class="secondary" id="resetPlan">重置</button><button class="primary" id="saveAction">保存调整</button></div>
     <div class="footnote">仅发送标题和 URL · DeepSeek · 可在设置中修改</div>
   </footer>
 </div>
@@ -125,16 +125,16 @@
 <script>
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),1800)}
-  function switchView(view){$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#resetPlan').classList.toggle('hidden',view==='current');$('#aiAction').classList.toggle('hidden',view==='proposal');$('.mode-line').classList.toggle('hidden',view==='proposal');$('#saveAction').textContent=view==='current'?'保存调整':'应用 AI 方案';}
+  function switchView(view){$('#currentView').classList.toggle('hidden',view!=='current');$('#proposalView').classList.toggle('hidden',view!=='proposal');$('#aiAction').classList.toggle('hidden',view==='proposal');$('.mode-line').classList.toggle('hidden',view==='proposal');$('#saveAction').textContent=view==='current'?'保存调整':'应用 AI 方案';}
   $$('.group-head').forEach(b=>b.onclick=e=>{if(e.target.matches('input'))return;b.closest('.group').classList.toggle('closed')});
   $$('.mode').forEach(b=>b.onclick=()=>{$$('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
   $('#aiAction').onclick=e=>{e.target.disabled=true;e.target.textContent='分析中…';setTimeout(()=>{e.target.disabled=false;e.target.textContent='AI 整理';switchView('proposal');toast('方案已生成，可拖动标签后再应用')},950)};
   $('#saveAction').onclick=e=>{e.target.disabled=true;e.target.textContent='正在保存…';setTimeout(()=>{e.target.disabled=false;e.target.textContent=$('#proposalView').classList.contains('hidden')?'保存调整':'已应用';toast('已保存到 Chrome 原生标签组（模拟）')},700)};
-  $('#resetPlan').onclick=()=>{switchView('current');toast('已放弃 AI 方案，恢复原先状态')};
+  $('#resetPlan').onclick=()=>window.location.reload();
   $('#undo').onclick=()=>toast('已撤销上一次整理（模拟）');$('#settings').onclick=()=>toast('模型设置将在独立页面打开');
   let dragging=null;
   function updateCounts(view){$$(`#${view} .group`).forEach(g=>{$('.group-count',g).textContent=`${$$('.tab-row',g).length} 个`})}
-  $$('.content').forEach(view=>{const wire=()=>{$$('.tab-row',view).forEach(row=>{row.draggable=true;row.addEventListener('dragstart',()=>{dragging=row;row.classList.add('dragging')});row.addEventListener('dragend',()=>{row.classList.remove('dragging');dragging=null;$$('.drag-over').forEach(x=>x.classList.remove('drag-over'))})});$$('.group-body',view).forEach(zone=>{zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over')});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');if(!dragging||dragging.parentElement===zone)return;zone.appendChild(dragging);updateCounts(view.id);toast('标签已移动，点击保存后生效')})})};wire()});
+  $$('.content').forEach(view=>{const wire=()=>{$$('.tab-row',view).forEach(row=>{row.draggable=true;row.addEventListener('dragstart',()=>{dragging=row;row.classList.add('dragging')});row.addEventListener('dragend',()=>{row.classList.remove('dragging');dragging=null;$$('.drag-over').forEach(x=>x.classList.remove('drag-over'))})});$$('.group-body',view).forEach(zone=>{zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over')});zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');if(!dragging||dragging.parentElement===zone)return;zone.appendChild(dragging);updateCounts(view.id)})})};wire()});
 </script>
 </body>
 </html>
