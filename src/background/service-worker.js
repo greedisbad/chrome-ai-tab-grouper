@@ -31,6 +31,11 @@ async function handle(message) {
     const text = await completeJson(config, buildGroupingMessages(message.draft, message.mode, config.preference));
     return { ok: true, draft: parseGroupingResponse(text, message.draft) };
   }
+  if (message.type === "settings:test") {
+    const config = await getPrivateConfig();
+    await completeJson(config, [{ role: "user", content: "只返回 JSON：{\"ok\":true}" }]);
+    return { ok: true, message: "模型连接成功" };
+  }
   throw new Error("未知操作");
 }
 
