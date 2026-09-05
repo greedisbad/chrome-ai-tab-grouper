@@ -295,7 +295,7 @@
       <div class="field"><label>接口类型</label><select><option>OpenAI Compatible</option><option>Chrome 内置模型（实验）</option></select></div>
       <div class="field"><label>Base URL</label><input value="https://api.deepseek.com" placeholder="例如 http://localhost:11434/v1"/><div class="hint">也支持 localhost。首次连接新域名时，Chrome 会请求访问权限。</div></div>
       <div class="field"><label>API Key</label><input type="password" value="sk-demo-not-a-real-key"/><div class="hint">原型不会发送或保存这个值。正式版默认只在本次浏览器会话中保留。</div></div>
-      <div class="field"><label>模型名称</label><input value="deepseek-chat" placeholder="输入服务端支持的模型名"/></div>
+      <div class="field"><label>模型名称</label><input value="deepseek-v4-flash" placeholder="输入服务端支持的模型名"/></div>
       <div class="connection"><span>● 配置可用（模拟）</span><button class="soft-btn" id="testConnection">重新测试</button></div>
       <div class="field"><label>发送给模型的内容</label><label class="radio-line"><input type="radio" name="scope"/> 仅发送域名</label><label class="radio-line"><input type="radio" name="scope" checked/> 发送标题与 URL</label><label class="radio-line"><input type="radio" name="scope" disabled/> 页面摘要（后续版本）</label></div>
       <div class="field"><label>我的整理偏好</label><textarea>优先按项目而不是网站分组。localhost 和对应的 staging 环境放在一起。不要移动固定标签。</textarea><div class="hint">这是追加给系统规则的偏好；不会覆盖安全和输出格式约束。</div></div>

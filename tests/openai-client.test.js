@@ -8,7 +8,7 @@ test("completeJson posts to the compatible chat completions endpoint", async () 
     request = { url, options };
     return { ok: true, json: async () => ({ choices: [{ message: { content: '{"ok":true}' } }] }) };
   };
-  const content = await completeJson({ baseUrl: "https://api.deepseek.com", apiKey: "secret", model: "deepseek-chat" }, [{ role: "user", content: "hi" }], fetchImpl);
+  const content = await completeJson({ baseUrl: "https://api.deepseek.com", apiKey: "secret", model: "deepseek-v4-flash" }, [{ role: "user", content: "hi" }], fetchImpl);
   assert.equal(request.url, "https://api.deepseek.com/chat/completions");
   assert.equal(content, '{"ok":true}');
   assert.match(request.options.headers.Authorization, /^Bearer /);

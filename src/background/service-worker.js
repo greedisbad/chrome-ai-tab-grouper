@@ -1,6 +1,7 @@
 import { readWorkspace, applyDraft } from "./chrome-workspace.js";
 import { buildGroupingMessages, parseGroupingResponse } from "../ai/grouping.js";
 import { completeJson } from "../ai/openai-client.js";
+import { snapshotToDraft } from "../domain/draft.js";
 
 const undoSnapshots = new Map();
 chrome.runtime.onInstalled.addListener(() => chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }));
@@ -23,7 +24,6 @@ async function handle(message) {
     const before = undoSnapshots.get(message.windowId);
     if (!before) throw new Error("没有可撤销的整理记录");
     const current = await readWorkspace(chrome, message.windowId);
-    const { snapshotToDraft } = await import("../domain/draft.js");
     return { ok: true, snapshot: await applyDraft(chrome, current, snapshotToDraft(before)) };
   }
   if (message.type === "workspace:ai-group") {

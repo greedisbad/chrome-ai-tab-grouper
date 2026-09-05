@@ -4,6 +4,14 @@ export function normalizeBaseUrl(value) {
   if (url.protocol !== "https:" && !(local && url.protocol === "http:")) throw new Error("远程模型地址必须使用 HTTPS");
   return url.href.replace(/\/$/, "");
 }
+
+export function migrateModelConfig(config = {}) {
+  let isDeepSeek = false;
+  try { isDeepSeek = normalizeBaseUrl(config.baseUrl || "") === "https://api.deepseek.com"; } catch {}
+  if (isDeepSeek && config.model === "deepseek-chat") return { ...config, model: "deepseek-v4-flash" };
+  return config;
+}
+
 export function validateModelConfig(config) {
   try {
     const baseUrl = normalizeBaseUrl(config.baseUrl || "");

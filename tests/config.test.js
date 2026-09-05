@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeBaseUrl, validateModelConfig } from "../src/ai/config.js";
+import { migrateModelConfig, normalizeBaseUrl, validateModelConfig } from "../src/ai/config.js";
 
 test("normalizeBaseUrl accepts DeepSeek and localhost", () => {
   assert.equal(normalizeBaseUrl("https://api.deepseek.com/"), "https://api.deepseek.com");
@@ -13,6 +13,15 @@ test("normalizeBaseUrl rejects insecure remote endpoints", () => {
 
 test("validateModelConfig requires a model and remote API key", () => {
   assert.equal(validateModelConfig({ baseUrl: "https://api.deepseek.com", model: "", apiKey: "x" }).ok, false);
-  assert.equal(validateModelConfig({ baseUrl: "https://api.deepseek.com", model: "deepseek-chat", apiKey: "" }).ok, false);
+  assert.equal(validateModelConfig({ baseUrl: "https://api.deepseek.com", model: "deepseek-v4-flash", apiKey: "" }).ok, false);
   assert.equal(validateModelConfig({ baseUrl: "http://localhost:11434/v1", model: "qwen", apiKey: "" }).ok, true);
+});
+
+test("migrateModelConfig updates only the retired DeepSeek default", () => {
+  assert.deepEqual(
+    migrateModelConfig({ baseUrl: "https://api.deepseek.com", model: "deepseek-chat", preference: "按项目" }),
+    { baseUrl: "https://api.deepseek.com", model: "deepseek-v4-flash", preference: "按项目" }
+  );
+  assert.equal(migrateModelConfig({ baseUrl: "http://localhost:11434/v1", model: "deepseek-chat" }).model, "deepseek-chat");
+  assert.equal(migrateModelConfig({ baseUrl: "https://api.deepseek.com", model: "custom-model" }).model, "custom-model");
 });

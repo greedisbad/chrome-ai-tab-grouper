@@ -28,7 +28,7 @@ Tabloom 是一个供公司内部使用的 Chrome 标签分组插件。它直接�
 
 AI 完全可选。点击设置图标填写：
 
-- Base URL：DeepSeek 示例为 `https://api.deepseek.com`。
+- Base URL：DeepSeek 示例为 `https://api.deepseek.com`，默认模型为 `deepseek-v4-flash`。
 - 模型名称：填写接口当前支持的模型名。
 - API Key：默认只保留到浏览器会话结束；勾选后可保存在当前浏览器的扩展本地存储。
 - 整理偏好：例如“优先按项目分组，localhost 和 staging 放在一起”。

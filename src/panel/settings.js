@@ -1,10 +1,12 @@
-import { normalizeBaseUrl } from "../ai/config.js";
+import { migrateModelConfig, normalizeBaseUrl } from "../ai/config.js";
 
 export async function loadSettings(form) {
   const local = await chrome.storage.local.get(["modelConfig", "rememberedApiKey"]);
-  const config = local.modelConfig || {};
+  const savedConfig = local.modelConfig || {};
+  const config = migrateModelConfig(savedConfig);
+  if (config !== savedConfig) await chrome.storage.local.set({ modelConfig: config });
   form.baseUrl.value = config.baseUrl || "https://api.deepseek.com";
-  form.model.value = config.model || "deepseek-chat";
+  form.model.value = config.model || "deepseek-v4-flash";
   form.preference.value = config.preference || "";
   form.rememberKey.checked = Boolean(local.rememberedApiKey);
   form.apiKey.value = "";
