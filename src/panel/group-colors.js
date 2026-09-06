@@ -13,3 +13,8 @@ export const GROUP_COLORS = Object.freeze([
 export function getGroupColor(value) {
   return GROUP_COLORS.find(color => color.value === value) || GROUP_COLORS[0];
 }
+
+export function groupColorPaletteHtml(group, clientId) {
+  if (!group) return "";
+  return GROUP_COLORS.map(color => `<button class="palette-color ${color.value === group.color ? "selected" : ""}" data-color-id="${clientId}" data-color-value="${color.value}" style="--swatch:${color.hex}" title="${color.label}" aria-label="${color.label}" aria-pressed="${color.value === group.color}"></button>`).join("");
+}

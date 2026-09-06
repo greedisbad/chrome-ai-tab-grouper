@@ -1,6 +1,6 @@
 import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, renameGroup, setGroupColor, moveGroup } from "./editor-state.js";
 import { loadSettings, saveSettings } from "./settings.js";
-import { GROUP_COLORS, getGroupColor } from "./group-colors.js";
+import { getGroupColor, groupColorPaletteHtml } from "./group-colors.js";
 
 const $ = selector => document.querySelector(selector);
 let state;
@@ -66,7 +66,7 @@ function groupHtml(group, ungrouped=false) {
   const clientId = ungrouped ? "ungrouped" : group.clientId;
   const title = ungrouped ? "未分组" : `<input class="name-input" data-group-id="${clientId}" value="${escapeHtml(group.title)}">`;
   const currentColor = getGroupColor(group?.color);
-  const palette = GROUP_COLORS.map(color => `<button class="palette-color ${color.value===group.color?"selected":""}" data-color-id="${clientId}" data-color-value="${color.value}" style="--swatch:${color.hex}" title="${color.label}" aria-label="${color.label}" aria-pressed="${color.value===group.color}"></button>`).join("");
+  const palette = groupColorPaletteHtml(group, clientId);
   const tools = ungrouped ? "" : `<button class="reorder" data-move-id="${clientId}" data-delta="-1" title="上移分组">↑</button><button class="reorder" data-move-id="${clientId}" data-delta="1" title="下移分组">↓</button><span class="color-picker"><button class="color-swatch" data-color-toggle="${clientId}" style="--swatch:${currentColor.hex}" title="分组颜色：${currentColor.label}" aria-label="选择分组颜色，当前${currentColor.label}" aria-expanded="false"></button><span class="color-palette hidden" data-palette-id="${clientId}" role="group" aria-label="选择分组颜色">${palette}</span></span><button class="delete" data-delete-id="${clientId}" title="删除分组">×</button>`;
   const dotColor = ungrouped ? "#a6aca8" : currentColor.hex;
   return `<section class="group ${ungrouped?"ungrouped":""}"><div class="group-head"><span class="dot" style="--group-color:${dotColor}"></span><span class="group-name">${title}</span><span class="group-tools"><span class="group-count">${ids.length} 个</span>${tools}</span></div><div class="group-body" data-group-id="${clientId}">${ids.map(tabHtml).join("") || '<div class="empty">拖动标签到这里</div>'}</div></section>`;
