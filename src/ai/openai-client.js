@@ -4,8 +4,9 @@ function requestBody(config, messages, stream = false) {
   const body = { model: config.model, messages, response_format: { type: "json_object" } };
   if (stream) body.stream = true;
   if (new URL(config.baseUrl).hostname === "api.deepseek.com") {
-    body.thinking = { type: config.thinkingEnabled ? "enabled" : "disabled" };
-    if (config.thinkingEnabled) body.reasoning_effort = "low";
+    const thinkingEnabled = config.thinkingEnabled !== false;
+    body.thinking = { type: thinkingEnabled ? "enabled" : "disabled" };
+    if (thinkingEnabled) body.reasoning_effort = "low";
     else body.temperature = 0.2;
   } else body.temperature = 0.2;
   return body;

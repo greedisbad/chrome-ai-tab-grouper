@@ -19,6 +19,7 @@ test("loadSettings refills a session API key into the password field", async () 
   const target = form();
   await loadSettings(target);
   assert.equal(target.apiKey.value, "session-secret");
+  assert.equal(target.thinkingEnabled.checked, true);
   delete globalThis.chrome;
 });
 

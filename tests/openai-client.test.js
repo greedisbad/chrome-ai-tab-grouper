@@ -19,7 +19,7 @@ test("completeJson redacts server errors", async () => {
   await assert.rejects(() => completeJson({ baseUrl: "https://api.deepseek.com", apiKey: "key", model: "m" }, [], fetchImpl), /401/);
 });
 
-test("streamJson disables DeepSeek thinking by default and streams content", async () => {
+test("streamJson enables low-effort DeepSeek thinking by default and streams content", async () => {
   let payload;
   const events = [];
   const chunks = [
@@ -32,10 +32,22 @@ test("streamJson disables DeepSeek thinking by default and streams content", asy
     return { ok: true, body: new ReadableStream({ start(controller) { chunks.forEach(chunk => controller.enqueue(new TextEncoder().encode(chunk))); controller.close(); } }) };
   };
   const content = await streamJson({ baseUrl: "https://api.deepseek.com", apiKey: "key", model: "deepseek-v4-flash" }, [], event => events.push(event), fetchImpl);
-  assert.deepEqual(payload.thinking, { type: "disabled" });
+  assert.deepEqual(payload.thinking, { type: "enabled" });
+  assert.equal(payload.reasoning_effort, "low");
   assert.equal(payload.stream, true);
   assert.equal(content, '{"groups":[]}');
   assert.equal(events.filter(event => event.type === "content").length, 2);
+});
+
+test("streamJson disables DeepSeek thinking only when explicitly configured", async () => {
+  let payload;
+  const fetchImpl = async (_url, options) => {
+    payload = JSON.parse(options.body);
+    const text = 'data: {"choices":[{"delta":{"content":"{}"}}]}\n\ndata: [DONE]\n\n';
+    return { ok: true, body: new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(text)); controller.close(); } }) };
+  };
+  await streamJson({ baseUrl: "https://api.deepseek.com", apiKey: "key", model: "deepseek-v4-flash", thinkingEnabled: false }, [], () => {}, fetchImpl);
+  assert.deepEqual(payload.thinking, { type: "disabled" });
 });
 
 test("streamJson exposes reasoning chunks when thinking is enabled", async () => {

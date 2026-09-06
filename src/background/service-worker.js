@@ -52,7 +52,7 @@ chrome.runtime.onConnect.addListener(port => {
       port.postMessage({ type: "stage", text: "正在准备标签信息" });
       const config = await getPrivateConfig();
       port.postMessage({ type: "debug", enabled: Boolean(config.developerMode) });
-      port.postMessage({ type: "stage", text: config.thinkingEnabled ? "AI 正在思考" : "AI 正在快速整理" });
+      port.postMessage({ type: "stage", text: config.thinkingEnabled !== false ? "AI 正在思考" : "AI 正在快速整理" });
       const text = await streamJson(config, buildGroupingMessages(message.draft, message.mode, config.preference), event => port.postMessage(event));
       port.postMessage({ type: "stage", text: "正在校验分组结果" });
       port.postMessage({ type: "done", draft: parseGroupingResponse(text, message.draft) });

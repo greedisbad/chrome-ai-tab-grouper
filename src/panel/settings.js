@@ -11,7 +11,7 @@ export async function loadSettings(form) {
   form.baseUrl.value = config.baseUrl || "https://api.deepseek.com";
   form.model.value = config.model || "deepseek-v4-flash";
   form.preference.value = config.preference || "";
-  form.thinkingEnabled.checked = Boolean(config.thinkingEnabled);
+  form.thinkingEnabled.checked = config.thinkingEnabled !== false;
   form.developerMode.checked = Boolean(config.developerMode);
   form.rememberKey.checked = Boolean(local.rememberedApiKey);
   form.apiKey.value = session.sessionApiKey || local.rememberedApiKey || "";
