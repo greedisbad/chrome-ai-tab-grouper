@@ -25,7 +25,14 @@ const tabs = [
   [8, "Chrome tabGroups API", "https://developer.chrome.com/docs/extensions/reference/api/tabGroups"],
   [9, "Production dashboard", "https://app.example.com/dashboard"]
 ].map(([id, title, url], index) => ({ id, title, url, pinned: false, index, groupId: -1 }));
-const draft = { windowId: 1, tabs, groups: [], ungroupedTabIds: tabs.map(tab => tab.id) };
+const mode = process.argv.find(argument => argument.startsWith("--mode="))?.split("=")[1] || "regroup";
+const hasExistingGroup = mode !== "regroup";
+const draft = {
+  windowId: 1,
+  tabs,
+  groups: hasExistingGroup ? [{ clientId: "existing", chromeGroupId: 10, title: "Existing engineering", color: "blue", tabIds: [1, 2] }] : [],
+  ungroupedTabIds: tabs.map(tab => tab.id).filter(id => !hasExistingGroup || ![1, 2].includes(id))
+};
 const thinkingEnabled = process.argv.includes("--thinking");
 let reasoningCharacters = 0;
 const started = Date.now();
@@ -34,13 +41,14 @@ const response = await streamJson({
   model: env.DEEPSEEK_MODEL || "deepseek-v4-flash",
   apiKey: env.DEEPSEEK_API_KEY,
   thinkingEnabled
-}, buildGroupingMessages(draft, "regroup", "按项目和工作目的分组，开发环境与对应项目放在一起"), event => {
+}, buildGroupingMessages(draft, mode, "按项目和工作目的分组，开发环境与对应项目放在一起"), event => {
   if (event.type === "reasoning") reasoningCharacters += event.text.length;
 });
 const result = parseGroupingResponse(response, draft);
 if (result.groups.length === 0) throw new Error("模型返回了有效 JSON，但没有创建任何分组");
 console.log(JSON.stringify({
   thinkingEnabled,
+  mode,
   elapsedMs: Date.now() - started,
   reasoningCharacters,
   groups: result.groups.map(group => ({ title: group.title, color: group.color, tabCount: group.tabIds.length })),
