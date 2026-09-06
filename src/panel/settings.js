@@ -1,7 +1,10 @@
 import { migrateModelConfig, normalizeBaseUrl } from "../ai/config.js";
 
 export async function loadSettings(form) {
-  const local = await chrome.storage.local.get(["modelConfig", "rememberedApiKey"]);
+  const [local, session] = await Promise.all([
+    chrome.storage.local.get(["modelConfig", "rememberedApiKey"]),
+    chrome.storage.session.get("sessionApiKey")
+  ]);
   const savedConfig = local.modelConfig || {};
   const config = migrateModelConfig(savedConfig);
   if (config !== savedConfig) await chrome.storage.local.set({ modelConfig: config });
@@ -11,7 +14,15 @@ export async function loadSettings(form) {
   form.thinkingEnabled.checked = Boolean(config.thinkingEnabled);
   form.developerMode.checked = Boolean(config.developerMode);
   form.rememberKey.checked = Boolean(local.rememberedApiKey);
-  form.apiKey.value = "";
+  form.apiKey.value = session.sessionApiKey || local.rememberedApiKey || "";
+}
+
+export function settingsFingerprint(form) {
+  return JSON.stringify({
+    baseUrl: form.baseUrl.value.trim(), model: form.model.value.trim(), apiKey: form.apiKey.value.trim(),
+    preference: form.preference.value.trim(), rememberKey: form.rememberKey.checked,
+    thinkingEnabled: form.thinkingEnabled.checked, developerMode: form.developerMode.checked
+  });
 }
 
 export async function saveSettings(form) {

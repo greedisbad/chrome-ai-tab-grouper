@@ -1,5 +1,5 @@
 import { createEditorState, moveTab, resetDraft, addGroup, removeGroup, renameGroup, setGroupColor, moveGroup } from "./editor-state.js";
-import { loadSettings, saveSettings } from "./settings.js";
+import { loadSettings, saveSettings, settingsFingerprint } from "./settings.js";
 import { getGroupColor, groupColorPaletteHtml } from "./group-colors.js";
 
 const $ = selector => document.querySelector(selector);
@@ -9,6 +9,7 @@ let draggingTabId = null;
 let aiTimer;
 let aiHideTimer;
 let aiDebugEnabled = false;
+let savedSettingsFingerprint = "";
 
 function toast(message, error = false) {
   const element = $("#toast"); element.textContent = message; element.style.background = error ? "#8f403b" : "#1f2d27"; element.classList.add("show");
@@ -129,9 +130,9 @@ $("#undo").addEventListener("click", async () => { try { const response=await se
 $("#aiAction").addEventListener("click", async () => { try { busy(true); $("#aiAction").textContent="分析中…"; const draft=await runAiGrouping(state.draft,mode); state={...state,draft,dirty:true};render();toast(`AI 整理完成 · ${draft.groups.length} 个组，${draft.ungroupedTabIds.length} 个未分组`); } catch(error){toast(error.message,true)} finally{$("#aiAction").textContent="AI 整理";busy(false)} });
 
 const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),thinkingEnabled:$("#thinkingEnabled"),developerMode:$("#developerMode"),preference:$("#preference")};
-$("#settingsButton").addEventListener("click", async()=>{$("#editorView").classList.add("hidden");$("#toolbar").classList.add("hidden");$("#settingsView").classList.remove("hidden");await loadSettings(form)});
-$("#settingsBack").addEventListener("click",()=>{$("#settingsView").classList.add("hidden");$("#editorView").classList.remove("hidden");$("#toolbar").classList.remove("hidden")});
-$("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);toast("模型设置已保存")}catch(error){toast(error.message,true)}});
-$("#testConnection").addEventListener("click",async()=>{try{await saveSettings(form);const result=await send({type:"settings:test"});toast(result.message||"连接成功")}catch(error){toast(error.message,true)}});
+$("#settingsButton").addEventListener("click", async()=>{$("#editorView").classList.add("hidden");$("#toolbar").classList.add("hidden");$("#settingsView").classList.remove("hidden");await loadSettings(form);savedSettingsFingerprint=settingsFingerprint(form)});
+$("#settingsBack").addEventListener("click",()=>{if(settingsFingerprint(form)!==savedSettingsFingerprint&&!window.confirm("设置尚未保存，确定放弃修改并返回吗？"))return;$("#settingsView").classList.add("hidden");$("#editorView").classList.remove("hidden");$("#toolbar").classList.remove("hidden")});
+$("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);savedSettingsFingerprint=settingsFingerprint(form);toast("模型设置已保存")}catch(error){toast(error.message,true)}});
+$("#testConnection").addEventListener("click",async()=>{try{await saveSettings(form);savedSettingsFingerprint=settingsFingerprint(form);const result=await send({type:"settings:test"});toast(result.message||"连接成功")}catch(error){toast(error.message,true)}});
 
 loadWorkspace();
