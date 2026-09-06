@@ -1,6 +1,6 @@
 import { readWorkspace, applyDraft } from "./chrome-workspace.js";
 import { buildGroupingMessages, parseGroupingResponse } from "../ai/grouping.js";
-import { completeJson } from "../ai/openai-client.js";
+import { completeJson, streamJson } from "../ai/openai-client.js";
 import { snapshotToDraft } from "../domain/draft.js";
 
 const undoSnapshots = new Map();
@@ -42,4 +42,21 @@ async function handle(message) {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   handle(message).then(sendResponse).catch(error => sendResponse({ ok: false, error: error.message || "操作失败" }));
   return true;
+});
+
+chrome.runtime.onConnect.addListener(port => {
+  if (port.name !== "ai-grouping") return;
+  port.onMessage.addListener(async message => {
+    if (message.type !== "start") return;
+    try {
+      port.postMessage({ type: "stage", text: "正在准备标签信息" });
+      const config = await getPrivateConfig();
+      port.postMessage({ type: "stage", text: config.thinkingEnabled ? "AI 正在思考" : "AI 正在快速整理" });
+      const text = await streamJson(config, buildGroupingMessages(message.draft, message.mode, config.preference), event => port.postMessage(event));
+      port.postMessage({ type: "stage", text: "正在校验分组结果" });
+      port.postMessage({ type: "done", draft: parseGroupingResponse(text, message.draft) });
+    } catch (error) {
+      port.postMessage({ type: "error", error: error.message || "AI 整理失败" });
+    }
+  });
 });

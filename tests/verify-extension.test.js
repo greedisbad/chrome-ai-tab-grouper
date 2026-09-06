@@ -30,3 +30,13 @@ test("saving model settings does not clear the visible API key", async () => {
   const source = await readFile(new URL("../src/panel/panel.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /form\.apiKey\.value\s*=\s*["']{2}/, "保存设置后不应立即清空用户正在查看的 API Key");
 });
+
+test("AI grouping uses a progress port and provides an expandable activity window", async () => {
+  const [script, html] = await Promise.all([
+    readFile(new URL("../src/panel/panel.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/panel/panel.html", import.meta.url), "utf8")
+  ]);
+  assert.match(script, /chrome\.runtime\.connect/);
+  assert.match(html, /id="aiProgress"/);
+  assert.match(html, /id="aiReasoning"/);
+});

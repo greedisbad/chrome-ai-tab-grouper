@@ -6,6 +6,8 @@ const $ = selector => document.querySelector(selector);
 let state;
 let mode = "ungrouped";
 let draggingTabId = null;
+let aiTimer;
+let aiHideTimer;
 
 function toast(message, error = false) {
   const element = $("#toast"); element.textContent = message; element.style.background = error ? "#8f403b" : "#1f2d27"; element.classList.add("show");
@@ -15,6 +17,39 @@ async function send(message) {
   const response = await chrome.runtime.sendMessage(message);
   if (!response?.ok) throw new Error(response?.error || "操作失败");
   return response;
+}
+function beginAiProgress() {
+  clearTimeout(aiHideTimer); clearInterval(aiTimer);
+  const panel = $("#aiProgress"); panel.classList.remove("hidden", "done", "error");
+  $("#aiProgressBody").classList.add("hidden"); $("#aiProgressToggle").setAttribute("aria-expanded", "false");
+  $("#aiStage").textContent = "正在准备"; $("#aiElapsed").textContent = "0s"; $("#aiReasoning").textContent = "等待模型返回…";
+  const started = Date.now();
+  aiTimer = setInterval(() => { $("#aiElapsed").textContent = `${Math.floor((Date.now()-started)/1000)}s`; }, 1000);
+}
+function finishAiProgress(text, error = false) {
+  clearInterval(aiTimer); $("#aiStage").textContent = text;
+  $("#aiProgress").classList.add(error ? "error" : "done");
+  aiHideTimer = setTimeout(() => { if ($("#aiProgressBody").classList.contains("hidden")) $("#aiProgress").classList.add("hidden"); }, 5000);
+}
+function runAiGrouping(draft, selectedMode) {
+  beginAiProgress();
+  return new Promise((resolve, reject) => {
+    const port = chrome.runtime.connect({ name: "ai-grouping" });
+    let settled = false;
+    let hasReasoning = false;
+    port.onMessage.addListener(message => {
+      if (message.type === "stage") { $("#aiStage").textContent = message.text; if (!hasReasoning) $("#aiReasoning").textContent = message.text; }
+      if (message.type === "reasoning") {
+        const box = $("#aiReasoning");
+        if (!hasReasoning) { box.textContent = ""; hasReasoning = true; }
+        box.textContent += message.text; box.scrollTop = box.scrollHeight;
+      }
+      if (message.type === "done") { settled = true; finishAiProgress("整理完成"); resolve(message.draft); port.disconnect(); }
+      if (message.type === "error") { settled = true; finishAiProgress("整理失败", true); reject(new Error(message.error)); port.disconnect(); }
+    });
+    port.onDisconnect.addListener(() => { if (!settled) { finishAiProgress("连接中断", true); reject(new Error("AI 连接意外中断")); } });
+    port.postMessage({ type: "start", draft, mode: selectedMode });
+  });
 }
 function tabById(id) { return state.draft.tabs.find(tab => tab.id === id); }
 function favicon(tab) {
@@ -72,6 +107,10 @@ function closeColorPalettes() {
 }
 document.addEventListener("click", closeColorPalettes);
 document.addEventListener("keydown", event => { if (event.key === "Escape") closeColorPalettes(); });
+$("#aiProgressToggle").addEventListener("click", () => {
+  const body = $("#aiProgressBody"); body.classList.toggle("hidden");
+  $("#aiProgressToggle").setAttribute("aria-expanded", String(!body.classList.contains("hidden")));
+});
 async function loadWorkspace() {
   try { const response = await send({ type: "workspace:get" }); state = createEditorState(response.snapshot); render(); }
   catch (error) { $("#workspace").innerHTML = `<div class="loading">${escapeHtml(error.message)}</div>`; toast(error.message, true); }
@@ -83,9 +122,9 @@ document.querySelectorAll(".mode").forEach(button => button.addEventListener("cl
 $("#reset").addEventListener("click", () => { state=resetDraft(state); render(); });
 $("#save").addEventListener("click", async () => { try { busy(true); const emptyGroups=state.draft.groups.filter(group=>group.tabIds.length===0); const response=await send({type:"workspace:save",draft:state.draft}); state=createEditorState(response.snapshot,emptyGroups); render(); toast("已保存到 Chrome 原生标签组"); } catch(error){toast(error.message,true)} finally{busy(false)} });
 $("#undo").addEventListener("click", async () => { try { const response=await send({type:"workspace:undo",windowId:state.draft.windowId}); state=createEditorState(response.snapshot);render();toast("已撤销上次保存"); } catch(error){toast(error.message,true)} });
-$("#aiAction").addEventListener("click", async () => { try { busy(true); $("#aiAction").textContent="分析中…"; const response=await send({type:"workspace:ai-group",draft:state.draft,mode}); state={...state,draft:response.draft,dirty:true};render();toast(`AI 整理完成 · ${response.draft.groups.length} 个组，${response.draft.ungroupedTabIds.length} 个未分组`); } catch(error){toast(error.message,true)} finally{$("#aiAction").textContent="AI 整理";busy(false)} });
+$("#aiAction").addEventListener("click", async () => { try { busy(true); $("#aiAction").textContent="分析中…"; const draft=await runAiGrouping(state.draft,mode); state={...state,draft,dirty:true};render();toast(`AI 整理完成 · ${draft.groups.length} 个组，${draft.ungroupedTabIds.length} 个未分组`); } catch(error){toast(error.message,true)} finally{$("#aiAction").textContent="AI 整理";busy(false)} });
 
-const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),preference:$("#preference")};
+const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),thinkingEnabled:$("#thinkingEnabled"),preference:$("#preference")};
 $("#settingsButton").addEventListener("click", async()=>{$("#editorView").classList.add("hidden");$("#toolbar").classList.add("hidden");$("#settingsView").classList.remove("hidden");await loadSettings(form)});
 $("#settingsBack").addEventListener("click",()=>{$("#settingsView").classList.add("hidden");$("#editorView").classList.remove("hidden");$("#toolbar").classList.remove("hidden")});
 $("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);toast("模型设置已保存")}catch(error){toast(error.message,true)}});
