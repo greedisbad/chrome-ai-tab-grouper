@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "verify": "node scripts/verify-extension.mjs"
+    "verify": "node scripts/verify-extension.mjs",
+    "test:deepseek": "node scripts/deepseek-live-check.mjs"
   }
 }
