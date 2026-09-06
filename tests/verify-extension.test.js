@@ -40,3 +40,13 @@ test("AI grouping uses a progress port and provides an expandable activity windo
   assert.match(html, /id="aiProgress"/);
   assert.match(html, /id="aiReasoning"/);
 });
+
+test("developer mode exposes raw AI output controls in the real side panel", async () => {
+  const [script, html] = await Promise.all([
+    readFile(new URL("../src/panel/panel.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/panel/panel.html", import.meta.url), "utf8")
+  ]);
+  assert.match(html, /id="developerMode"/);
+  assert.match(html, /id="aiRaw"/);
+  assert.match(script, /message\.type === "content"/);
+});

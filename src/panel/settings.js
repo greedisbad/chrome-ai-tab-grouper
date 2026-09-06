@@ -9,6 +9,7 @@ export async function loadSettings(form) {
   form.model.value = config.model || "deepseek-v4-flash";
   form.preference.value = config.preference || "";
   form.thinkingEnabled.checked = Boolean(config.thinkingEnabled);
+  form.developerMode.checked = Boolean(config.developerMode);
   form.rememberKey.checked = Boolean(local.rememberedApiKey);
   form.apiKey.value = "";
 }
@@ -18,7 +19,7 @@ export async function saveSettings(form) {
   const origin = `${new URL(baseUrl).origin}/*`;
   const granted = await chrome.permissions.request({ origins: [origin] });
   if (!granted) throw new Error("需要允许访问模型接口地址");
-  const modelConfig = { baseUrl, model: form.model.value.trim(), preference: form.preference.value.trim(), thinkingEnabled: form.thinkingEnabled.checked };
+  const modelConfig = { baseUrl, model: form.model.value.trim(), preference: form.preference.value.trim(), thinkingEnabled: form.thinkingEnabled.checked, developerMode: form.developerMode.checked };
   if (!modelConfig.model) throw new Error("请输入模型名称");
   await chrome.storage.local.set({ modelConfig });
   const apiKey = form.apiKey.value.trim();

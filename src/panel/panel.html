@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="panel.css">
   <link rel="stylesheet" href="color-palette.css">
   <link rel="stylesheet" href="ai-progress.css">
+  <link rel="stylesheet" href="developer-mode.css">
 </head>
 <body>
   <div class="panel">
@@ -27,6 +28,7 @@
       <label>API Key<input id="apiKey" type="password" autocomplete="off" placeholder="输入新 Key，留空则保留已有 Key"></label>
       <label class="check"><input id="rememberKey" type="checkbox"> 在这台浏览器中记住 Key</label>
       <label class="check"><input id="thinkingEnabled" type="checkbox"> 启用思考模式 <small>（较慢，使用 low 强度）</small></label>
+      <label class="check"><input id="developerMode" type="checkbox"> 开发者模式 <small>（显示 AI 原始响应）</small></label>
       <label>整理偏好<textarea id="preference" placeholder="例如：优先按项目分组，localhost 与测试环境放在一起"></textarea></label>
       <div class="settings-actions"><button id="testConnection" class="secondary">测试连接</button><button id="saveSettings" class="primary">保存设置</button></div>
       <p class="privacy">默认示例为 DeepSeek。远程地址必须使用 HTTPS；localhost 可以使用 HTTP。标签正文不会发送给模型。</p>
@@ -41,7 +43,10 @@
       <button id="aiProgressToggle" class="ai-progress-head" aria-expanded="false">
         <span class="ai-pulse"></span><span id="aiStage">正在整理</span><span id="aiElapsed">0s</span><span class="ai-chevron">⌃</span>
       </button>
-      <div id="aiProgressBody" class="ai-progress-body hidden"><div id="aiReasoning" class="ai-reasoning">等待模型返回…</div></div>
+      <div id="aiProgressBody" class="ai-progress-body hidden">
+        <div id="aiReasoning" class="ai-reasoning">等待模型返回…</div>
+        <details id="aiDebug" class="ai-debug hidden"><summary>原始响应</summary><pre id="aiRaw"></pre></details>
+      </div>
     </aside>
     <div id="toast" class="toast" role="status"></div>
   </div>

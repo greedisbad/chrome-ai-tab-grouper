@@ -8,6 +8,7 @@ let mode = "ungrouped";
 let draggingTabId = null;
 let aiTimer;
 let aiHideTimer;
+let aiDebugEnabled = false;
 
 function toast(message, error = false) {
   const element = $("#toast"); element.textContent = message; element.style.background = error ? "#8f403b" : "#1f2d27"; element.classList.add("show");
@@ -23,6 +24,7 @@ function beginAiProgress() {
   const panel = $("#aiProgress"); panel.classList.remove("hidden", "done", "error");
   $("#aiProgressBody").classList.add("hidden"); $("#aiProgressToggle").setAttribute("aria-expanded", "false");
   $("#aiStage").textContent = "正在准备"; $("#aiElapsed").textContent = "0s"; $("#aiReasoning").textContent = "等待模型返回…";
+  aiDebugEnabled = false; $("#aiDebug").classList.add("hidden"); $("#aiDebug").open = false; $("#aiRaw").textContent = "";
   const started = Date.now();
   aiTimer = setInterval(() => { $("#aiElapsed").textContent = `${Math.floor((Date.now()-started)/1000)}s`; }, 1000);
 }
@@ -38,14 +40,16 @@ function runAiGrouping(draft, selectedMode) {
     let settled = false;
     let hasReasoning = false;
     port.onMessage.addListener(message => {
+      if (message.type === "debug") { aiDebugEnabled = message.enabled; $("#aiDebug").classList.toggle("hidden", !message.enabled); }
       if (message.type === "stage") { $("#aiStage").textContent = message.text; if (!hasReasoning) $("#aiReasoning").textContent = message.text; }
       if (message.type === "reasoning") {
         const box = $("#aiReasoning");
         if (!hasReasoning) { box.textContent = ""; hasReasoning = true; }
         box.textContent += message.text; box.scrollTop = box.scrollHeight;
       }
+      if (message.type === "content" && aiDebugEnabled) $("#aiRaw").textContent += message.text;
       if (message.type === "done") { settled = true; finishAiProgress("整理完成"); resolve(message.draft); port.disconnect(); }
-      if (message.type === "error") { settled = true; finishAiProgress("整理失败", true); reject(new Error(message.error)); port.disconnect(); }
+      if (message.type === "error") { settled = true; if (aiDebugEnabled) $("#aiRaw").textContent += `\n\n[解析错误] ${message.error}`; finishAiProgress("整理失败", true); reject(new Error(message.error)); port.disconnect(); }
     });
     port.onDisconnect.addListener(() => { if (!settled) { finishAiProgress("连接中断", true); reject(new Error("AI 连接意外中断")); } });
     port.postMessage({ type: "start", draft, mode: selectedMode });
@@ -124,7 +128,7 @@ $("#save").addEventListener("click", async () => { try { busy(true); const empty
 $("#undo").addEventListener("click", async () => { try { const response=await send({type:"workspace:undo",windowId:state.draft.windowId}); state=createEditorState(response.snapshot);render();toast("已撤销上次保存"); } catch(error){toast(error.message,true)} });
 $("#aiAction").addEventListener("click", async () => { try { busy(true); $("#aiAction").textContent="分析中…"; const draft=await runAiGrouping(state.draft,mode); state={...state,draft,dirty:true};render();toast(`AI 整理完成 · ${draft.groups.length} 个组，${draft.ungroupedTabIds.length} 个未分组`); } catch(error){toast(error.message,true)} finally{$("#aiAction").textContent="AI 整理";busy(false)} });
 
-const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),thinkingEnabled:$("#thinkingEnabled"),preference:$("#preference")};
+const form={baseUrl:$("#baseUrl"),model:$("#model"),apiKey:$("#apiKey"),rememberKey:$("#rememberKey"),thinkingEnabled:$("#thinkingEnabled"),developerMode:$("#developerMode"),preference:$("#preference")};
 $("#settingsButton").addEventListener("click", async()=>{$("#editorView").classList.add("hidden");$("#toolbar").classList.add("hidden");$("#settingsView").classList.remove("hidden");await loadSettings(form)});
 $("#settingsBack").addEventListener("click",()=>{$("#settingsView").classList.add("hidden");$("#editorView").classList.remove("hidden");$("#toolbar").classList.remove("hidden")});
 $("#saveSettings").addEventListener("click",async()=>{try{await saveSettings(form);toast("模型设置已保存")}catch(error){toast(error.message,true)}});
