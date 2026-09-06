@@ -44,6 +44,11 @@ const response = await streamJson({
 }, buildGroupingMessages(draft, mode, "按项目和工作目的分组，开发环境与对应项目放在一起"), event => {
   if (event.type === "reasoning") reasoningCharacters += event.text.length;
 });
+if (env.DEEPSEEK_DEBUG?.toLowerCase() === "true") {
+  console.log("\n--- DeepSeek raw content ---");
+  console.log(response);
+  console.log("--- end raw content ---\n");
+}
 const result = parseGroupingResponse(response, draft);
 if (result.groups.length === 0) throw new Error("模型返回了有效 JSON，但没有创建任何分组");
 console.log(JSON.stringify({
